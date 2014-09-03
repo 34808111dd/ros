@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV maker</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css" />
+    <link rel="stylesheet" type="text/css" href="/static/jquery-ui.css" />
+	<script src="/static/external/jquery/jquery.js"></script>
+    <script src="/static/jquery-ui.js"></script>
+    <script src="/static/clients.js"></script>
+
+</head>
+<body>
+
+<div id="clients">
+
+<form enctype="multipart/form-data" method="post" action="/rnr/clients_all/">
+{% csrf_token %}
+{{cl_form.as_p}}
+<input type="submit" id="Pbutton" value="Process" />
+</form>
+
+<script>
+
+</script>
+
+
+
+</div>
+
+<div id="all_clients">
+<table border=1>
+<theader> <tr><td  colspan="3">test</td><tr> </theader>
+{% for client in client_list %}
+  <tr id={{client.slug}}>
+  		<td>{{client.client_name}}</td>
+  		<td>
+  		{% for lang in client.language %}
+  		<div id={{lang.slug}}>{{lang.language_name}}</div>
+  		{% endfor %}
+  		</td>
+  		<td>
+  		{% for cont in client.contacts %}
+  		<div id={{cont.slug}}>{{cont.contact_email}}</div>
+  		{% endfor %}
+  		</td>
+  </tr>
+{% endfor %}
+</table>
+
+
+</div>
+
+<button id="add_client" onclick=get_clients()>Create new user</button>
+
+<div id="add_client" onclick="add_client">test</div>
+
+</body>
+</html>	

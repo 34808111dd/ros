@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV maker</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css" />
+    <link rel="stylesheet" type="text/css" href="/static/jquery-ui.css" />
+	<script src="/static/external/jquery/jquery.js"></script>
+    <script src="/static/jquery-ui.js"></script>
+
+</head>
+<body>
+
+<div id="tabs" class='container'>
+	<ul>
+		<li><a href="#tabs-1">File upload</a></li>
+		<li><a href="#tabs-2">Add Records</a></li>
+		<li><a href="#tabs-3">Remove Records</a></li>
+	</ul>
+	
+	<div id="tabs-1">
+		<div id="file_load">
+			<form enctype="multipart/form-data" method="post" action="/rnr/csv_process/">
+				{%csrf_token %}
+				<table>
+					{{ upload_file_form.as_table }}
+				</table>
+				<input type="submit" id="Pbutton" value="Process file" />
+			</form>
+		</div>
+	</div>
+	
+	<div id="tabs-2">
+		<div id="add_words">
+			<form method="post" action="/rnr/add_new_record/">
+				{% csrf_token %}
+				<table>
+    				{{ new_record_form.as_table }}
+				</table>
+				<input type="submit" id="Abutton" value="Add Record" />
+			</form>
+		</div>
+	</div>
+	
+	<div id="tabs-3" class='panel'>
+		<div id="all_records">
+			<form method="post" action="/rnr/del_record/">
+				{% csrf_token %}
+    				{{ all_records_form.as_p }}
+				<input type="submit" id="Dbutton" value="DESTROY!" />
+			</form>
+		</div>
+	</div>
+</div>
+
+<script>
+$( "#tabs" ).tabs();
+$( "#Pbutton" ).button();
+$( "#Abutton" ).button();
+$( "#Dbutton" ).button();
+$( "#id_input_file" ).button();
+$( "#id_output_encoding" ).selectmenu();
+$( "#id_output_format" ).selectmenu();
+$( "#id_ignore_decode_errors" ).selectmenu();
+$( "#id_time_operation" ).selectmenu();
+$( "#id_output_format" ).selectmenu();
+$( "#id_cut_client_name" ).selectmenu();
+$( "#id_add_region" ).selectmenu();
+
+</script>
+</body>
+
+</html>
