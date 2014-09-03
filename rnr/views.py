@@ -12,7 +12,7 @@ from django.template import RequestContext, Context
 from models import DictRecord, Client, Contact, Language
 from processor.csvfile import CSVProcessor, CSVParseOptions
 
-import json
+import simplejson
 from django.core import serializers
 
 
@@ -137,22 +137,25 @@ def clients_get_all_json( request ):
     #cl_form = ClientForm(request.POST)
     #clients = Client.objects.raw("select rnr_client.id, rnr_client.slug as client_slug, rnr_language.slug as language_slug, rnr_client.client_name, rnr_language.language_name from rnr_client inner join rnr_language on rnr_client.client_language_id = rnr_language.id;")
     client_objs = Client.objects.values('slug', 'client_name', 'client_language__slug','client_language__language_name')  
-    
+    Client.objects.extra()
 #     c = serializers.serialize('json', clients)
     
     
     #[client_slug:{'name':}]
     clients = []
     for client_obj in client_objs:
-        sl = client_obj.pop('slug')
-        clients.append({})
-        client_data={}
-        client_data['client_name']=client_obj.client_name
-        client_data['client_language']=client_obj.client_language__language_name
-        client_data['language_slug']=client_obj.client_language__slug
         
-        clients.append({client_obj.slug:client_data})
-#         contact_objs = Contact.objects.filter(client__slug=client_obj.slug).values('slug', 'client__slug')
+        client_slug = client_obj.pop('slug')
+        
+        
+        contact_objs = Contact.objects.filter(client__slug=client_slug).values('slug', 'contact_email')
+        print type(contact_objs)
+        print type(client_objs)
+#         cont_json = simplejson.dumps({'emails':list(contact_objs})
+        client_data={'client_slug':client_slug, 'attribs':client_obj, 'contacts':list(contact_objs)}
+        
+        clients.append(client_data)
+#         
 #         [c for c in contact_objs]
             
     
@@ -168,7 +171,8 @@ def clients_get_all_json( request ):
 #             'client_language':_client.language_name,
 #             'language_slug':_client.language_slug ,'contacts':c}}
 #         d.append(l)
-    response = HttpResponse()
-    response['Content-Type'] = "text/javascript"
-    response.write(clients)
+    clients = simplejson.dumps(clients)
+    response = HttpResponse(clients, content_type='application/json')
+#    response['Content-Type'] = "application/json"
+#    response.write("[{'attribs': {'client_language__language_name': u'English', 'client_name': u'BT', 'client_language__slug': u'a9a4754BAccD'}, 'client_slug': u'b0aeAFC923bD', 'contacts': [{'contact_email': u'bt@bt.com', 'slug': u'F94ECa3226B2'}, {'contact_email': u'root@bt.com', 'slug': u'cb3C1f46E725'}]}, {'attribs': {'client_language__language_name': u'English', 'client_name': u'Telia Sonera', 'client_language__slug': u'a9a4754BAccD'}, 'client_slug': u'BA8CeC5DFD8e', 'contacts': [{'contact_email': u'admin@telia.com', 'slug': u'F2dAc015db4a'}, {'contact_email': u'admin@telia.net', 'slug': u'Aae1c3c805D4'}, {'contact_email': u'root@telia.com', 'slug': u'1accA0A7Ff8E'}]}]")
     return response
