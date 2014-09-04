@@ -51,7 +51,7 @@ class Client(models.Model):
     Client
     '''
     slug = models.SlugField( unique=True, default=GenerateSlug )
-    client_name = models.CharField(max_length=128)
+    client_name = models.CharField(unique=True, max_length=128)
     client_language = models.ForeignKey('Language')
     
     def __unicode__(self):

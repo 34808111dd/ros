@@ -1,6 +1,6 @@
 from django import forms
-from models import DictRecord, Language
-
+from models import DictRecord, Language, Contact, Client
+from django.core.validators import validate_email
 
 class UploadFileForm(forms.Form):
     '''
@@ -69,7 +69,37 @@ class RecordsForm(forms.Form):
 #===============================================================================
 
 
+class MultiEmailField(forms.Field):
+    def to_python(self, value):
+        "Normalize data to a list of strings."
+
+        # Return an empty list if no input was given.
+        if not value:
+            return []
+        value = value.replace(" ","")
+        return value.split(',')
+
+    def validate(self, value):
+        "Check if value consists only of valid emails."
+        # Use the parent's handling of required fields, etc.
+        super(MultiEmailField, self).validate(value)
+        for email in value:
+            validate_email(email)
+            if Contact.objects.filter(contact_email=email).exists():
+                print dir(email)
+                raise forms.ValidationError("Email " + email + " already exists")
+
+class ClientNameField(forms.CharField):
+    def validate(self, value):
+        "Check if value consists only of valid emails."
+        # Use the parent's handling of required fields, etc.
+        super(ClientNameField, self).validate(value)
+        if Client.objects.filter(client_name=value).exists():
+                print dir(value)
+                raise forms.ValidationError("Client " + value + " already exists")
+
+
 class ClientForm(forms.Form):
-    client_name = forms.CharField(max_length = 128)
-    client_language = forms.ModelChoiceField(queryset=Language.objects.all(), to_field_name="language_name")
-    
+    client_name = ClientNameField(max_length = 128)
+    client_language = forms.ModelChoiceField(queryset=Language.objects.all(), to_field_name="slug")
+    client_emails = MultiEmailField()

@@ -9,7 +9,7 @@ from django.http import HttpResponseRedirect
 from forms import UploadFileForm, NewRecordForm, RecordsForm, ClientForm
 from django.template import RequestContext, Context
 
-from models import DictRecord, Client, Contact, Language
+from models import DictRecord, Client, Contact, Language, WorkType
 from processor.csvfile import CSVProcessor, CSVParseOptions
 
 import simplejson
@@ -121,6 +121,7 @@ def clients(request):
         return render_to_response('clients.html',{'cl_form':cl_form}, context_instance=RequestContext(request))
     if request.method == "GET":
         client_objects = Client.objects.all()
+        language_objects = Language.objects.all()
         client_list = []
         for client in client_objects:
             contacts = Contact.objects.filter(client=client).values('contact_email', 'slug')
@@ -137,7 +138,7 @@ def clients_get_all_json( request ):
     #cl_form = ClientForm(request.POST)
     #clients = Client.objects.raw("select rnr_client.id, rnr_client.slug as client_slug, rnr_language.slug as language_slug, rnr_client.client_name, rnr_language.language_name from rnr_client inner join rnr_language on rnr_client.client_language_id = rnr_language.id;")
     client_objs = Client.objects.values('slug', 'client_name', 'client_language__slug','client_language__language_name')  
-    Client.objects.extra()
+#     Client.objects.extra()
 #     c = serializers.serialize('json', clients)
     
     
@@ -176,3 +177,47 @@ def clients_get_all_json( request ):
 #    response['Content-Type'] = "application/json"
 #    response.write("[{'attribs': {'client_language__language_name': u'English', 'client_name': u'BT', 'client_language__slug': u'a9a4754BAccD'}, 'client_slug': u'b0aeAFC923bD', 'contacts': [{'contact_email': u'bt@bt.com', 'slug': u'F94ECa3226B2'}, {'contact_email': u'root@bt.com', 'slug': u'cb3C1f46E725'}]}, {'attribs': {'client_language__language_name': u'English', 'client_name': u'Telia Sonera', 'client_language__slug': u'a9a4754BAccD'}, 'client_slug': u'BA8CeC5DFD8e', 'contacts': [{'contact_email': u'admin@telia.com', 'slug': u'F2dAc015db4a'}, {'contact_email': u'admin@telia.net', 'slug': u'Aae1c3c805D4'}, {'contact_email': u'root@telia.com', 'slug': u'1accA0A7Ff8E'}]}]")
     return response
+
+
+def get_work_types_json( request ):
+    if request.method == 'GET':
+        work_types = WorkType.objects.values('slug', 'worktype_name')
+#        l=[]
+#        for work_type in work_types:
+#            l.append({})
+        work_types = simplejson.dumps(list(work_types))
+        print work_types
+        response = HttpResponse(work_types, content_type='application/json')
+        return response
+
+def add_new_client( request ):
+    
+    if request.is_ajax():
+        if request.method == 'POST':
+            new_client_form = ClientForm(request.POST)
+            if new_client_form.is_valid():
+                
+                client_name = new_client_form.cleaned_data['client_name']
+                client_language = new_client_form.cleaned_data['client_language']
+                client_contacts = new_client_form.cleaned_data['client_emails']
+                
+                shiny_new_client = Client(client_name = client_name, client_language=client_language)
+                shiny_new_client.save()
+                
+                for contact in client_contacts:
+                    print contact
+                    new_contact = Contact(client=shiny_new_client, contact_email=contact)
+                    new_contact.save()
+                
+                print client_contacts
+                
+                
+                                
+                return HttpResponse("OK")
+            else:
+                print new_client_form.errors.as_text()
+                return HttpResponse(new_client_form.errors.as_text())
+#             print new_client_form.cleaned_data
+#             print 'Raw Data: "%s"' % request.body
+            print new_client_form.errors
+    return HttpResponse("OK")

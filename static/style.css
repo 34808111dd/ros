@@ -36,11 +36,38 @@ input {
 	margin: 2px 0px 2px 0px;
 }
 
-.email {
-	border: 2px;
-	border-style: solid;
-	margin: 2px 2px 2px 2px;
-	padding: 2px 2px 2px 2px;
+#client_add_errors {
+	
+	color:black;
+	background-color:red;
+}
+
+.contact_email {
+	border: 1px;
+	border-style: dashed;
+	border-color: #dddddd;
+	color:black;
+	em:bold;
+	font-family:Verdana;
+	font-size: 14px;
+	background-color: gray;
+	margin: 1px 1px 1px 1px;
+	padding: 1px 1px 1px 1px;
 	display: inline-block;
 	
+}
+
+ label, input { display:block; }
+ 
+div#all_clients table td, div#all_clients table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; } 
+div#mytable table td, div#mytable table th { border: 1px solid #777; padding: .6em 10px; text-align: left; }
+div#dlg_add_user input{
+	
+	width: 400px;
+	
+}
+
+.del_contact_button {
+	width:20px;
+	height:20px;
 }
