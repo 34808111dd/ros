@@ -12,62 +12,55 @@
 <body>
 
 <div id="clients">
-
-<div id="mytable" class="ui-widget">
-
+<!--  Load all clients here -->
 <table id="existing_clients" class="ui-widget ui-widget-content">
-<thead> <tr class="ui-widget-header ">
+	<thead> 
+		<tr class="ui-widget-header ">
 			<th>Client name</th>
 			<th>Language</th>
 			<th>Contacts</th>
 		</tr>
-</thead>
+	</thead>
 <tbody>
 </tbody>
 </table>
-</div>
 
 
-<button id="opener">Create new user</button>
-<div id="dlg_add_user">
+<button id="btn_create_client">Create new user</button>
+
+<!-- add new user dialog  -->
+<div id="dlg_add_client">
 <p>Please fill forms below:</p>
 <form id=frm_add_client>
-<fieldset>
-<label for="client_name">Client Name</label>
-<input type="text" name="client_name" id="client_name" class="text ui-widget-content ui-corner-all">
+	<fieldset>
+		<label for="client_name">Client Name</label>
+		<input type="text" name="client_name" id="client_name" class="text ui-widget-content ui-corner-all">
+		<label for="client_language">Language</label>
+		<select name="client_language" id="client_language">
+			{% for language in language_objects %}
+			<option value={{language.slug}}>{{language.language_name}}</option>
+			{% endfor %}
+		</select> 
+		<label for="client_emails">Email list</label>
+		<input type="text" name="client_emails" id="client_emails" value="user@host.dom, user2@host.dom" class="text ui-widget-content ui-corner-all">
 
-
-
-<label for="client_language">Language</label>
-<!-- <input type="text" name="client_language" id="client_language" class="text ui-widget-content ui-corner-all"> -->
-<select name="client_language" id="client_language" class="text ui-widget-content ui-corner-all">
-{% for language in language_objects %}
-<option value={{language.slug}}>{{language.language_name}}</option>
-{% endfor %}
-</select> 
-
-
-<label for="client_emails">Email list</label>
-<input type="text" name="client_emails" id="client_emails" value="user@host.dom, user2@host.dom" class="text ui-widget-content ui-corner-all">
-
-<!-- Allow form submission with keyboard without duplicating the dialog button -->
-<div id="client_add_errors">
-</div>
-</fieldset>
+		<div id="dlg_add_client_errors"></div>
+	</fieldset>
 </form>
 </div>
-
-</div>
-
-<div id="work_types">
-
 </div>
 
 
+<!-- del contact dialog  -->
 <div id="dlg_confirm_del_contact" title="Delete this contact?">
-<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span><span id="del_contact"></span> will be permanently deleted. Are you sure?</p>
+	<p>
+		<span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+		<span id="del_contact"></span> will be permanently deleted. Are you sure?
+	</p>
 </div>
-<button id="opn_confirm_del">Create new work type</button>
 
+
+<div id="existing_work_types"></div>
+<button id="opn_confirm_del" onclick=Load_btn_del_contact()>Create new work type</button>
 </body>
 </html>	
