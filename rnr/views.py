@@ -122,15 +122,19 @@ def clients(request):
     if request.method == "GET":
         client_objects = Client.objects.all()
         language_objects = Language.objects.all()
+        work_types = WorkType.objects.all()
         client_list = []
         for client in client_objects:
             contacts = Contact.objects.filter(client=client).values('contact_email', 'slug')
             client.contacts=contacts
-            print contacts
+#             print contacts
             language = Language.objects.filter(client=client).values('language_name','slug')
             client.language = language
             client_list.append(client)
-        print dir(client_objects)
+#             work_types = WorkType.objects.values('worktype_name','slug')
+#             print work_types
+#         print dir(client_objects)
+        print work_types
         return render_to_response('clients.html',locals(), context_instance=RequestContext(request))
     
 

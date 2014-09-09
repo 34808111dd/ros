@@ -157,6 +157,15 @@ function Load_ui_elements(){
 	//
 	$( "#client_language" ).selectmenu();
 	
+	
+	 $( "#start_date_datepicker" ).datepicker({
+		 showButtonPanel: true
+		 });
+	 $( "#end_date_datepicker" ).datepicker({
+		 showButtonPanel: true
+		 });
+	 $('#work_start_time').timepicker({ 'timeFormat': 'H:i' });
+	 $('#work_end_time').timepicker({ 'timeFormat': 'H:i' });
 	//Add button styling to delete contact button
 //	$( ".btn_del_contact" ).button();
 	//bind click on btn_del_contact to open delete contact dialog
@@ -209,6 +218,34 @@ function CreateClient(){
 
 
 
-
+function CreateWork(){
+	//send form data as ajax
+	//alert("sended");
+	var client_name = $( "#client_name" ).val();
+	var client_language = $( "#client_language" ).val();
+	var client_emails = $( "#client_emails" ).val();
+	var posting = $.post( "/rnr/add_new_client", {
+		ajax: "true",
+		"client_name": client_name,
+		"client_language" : client_language,
+		"client_emails":client_emails,
+		'csrfmiddlewaretoken':getCookie('csrftoken'),
+	});
+	// Put the results in a div
+	posting.done(function( data ) {
+		//alert(data);
+		if (data === "OK"){
+			$("#dlg_add_client_errors").html("");
+			$('#frm_add_client').trigger("reset");
+			$('#dlg_add_client').dialog("close");
+			LoadClients();
+			return true;
+		}
+		else{
+			$("#dlg_add_client_errors").html(data);
+			return false;
+		};	
+	});
+};
 
 

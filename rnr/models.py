@@ -146,6 +146,10 @@ class Notification(models.Model):
     notification_outage = models.ForeignKey('Outage')
     notification_template = models.ForeignKey('Template')
     
+        
+    def __unicode__(self):
+        return self.notification_client.client_name + " " + self.notification_outage.outage_name + " " + self.notification_state.notification_state + " " + self.notification_work.work_number
+    
 class Template(models.Model):
     '''
     Template
@@ -158,3 +162,5 @@ class Template(models.Model):
     template_outage = models.ForeignKey('Outage')
     template_text = models.TextField()
     
+    def __unicode__(self):
+        return self.template_name

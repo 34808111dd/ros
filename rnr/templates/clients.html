@@ -4,9 +4,14 @@
     <title>CSV maker</title>
     <link rel="stylesheet" type="text/css" href="/static/style.css" />
     <link rel="stylesheet" type="text/css" href="/static/jquery-ui.css" />
+    
+    <link rel="stylesheet" type="text/css" href="/static/jquery.timepicker.css" />
+    
 	<script src="/static/external/jquery/jquery.js"></script>
     <script src="/static/jquery-ui.js"></script>
     <script src="/static/clients.js"></script>
+    
+    <script src="/static/jquery.timepicker.min.js"></script>
 
 </head>
 <body>
@@ -59,8 +64,35 @@
 	</p>
 </div>
 
-
 <div id="existing_work_types"></div>
-<button id="opn_confirm_del" onclick=Load_btn_del_contact()>Create new work type</button>
+<br>
+<div id="dlg_add_work">
+<p>Please fill forms below:</p>
+<form id=frm_add_work>
+	<fieldset>
+		<label for="work_number">Work Number</label>
+		<input type="text" name="work_number" id="work_number" class="text ui-widget-content ui-corner-all">
+		<label for="work_type">Work type</label>
+		<select name="work_type" id="work_type">
+			{% for work_type in work_types %}
+			<option value={{work_type.slug}}>{{work_type.worktype_name}}</option>
+			{% endfor %}
+		</select> 
+		<label for="work_circuit">Work Circuit</label>
+		<input type="text" name="work_circuit" id="work_circuit" class="text ui-widget-content ui-corner-all">
+		
+		<label for="start_date_datepicker">Start date:</label>
+		<input type="text" id="start_date_datepicker">
+		<input autocomplete="off" id="work_start_time" class="time ui-timepicker-input" type="text">
+		<label for="end_date_datepicker">End date:</label>
+		<input type="text" id="end_date_datepicker">
+		
+		<input autocomplete="off" id="work_end_time" class="time ui-timepicker-input" type="text">
+		<div id="dlg_add_work_errors"></div>
+	</fieldset>
+</form>
+</div>
+
+<button id="btn_add_work" onclick=Load_btn_del_contact()>Create new work type</button>
 </body>
 </html>	
