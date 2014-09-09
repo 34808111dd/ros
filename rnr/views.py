@@ -225,3 +225,36 @@ def add_new_client( request ):
 #             print 'Raw Data: "%s"' % request.body
             print new_client_form.errors
     return HttpResponse("OK")
+
+
+def add_new_work( request ):
+    
+    if request.is_ajax():
+        if request.method == 'POST':
+            new_client_form = ClientForm(request.POST)
+            if new_client_form.is_valid():
+                
+                client_name = new_client_form.cleaned_data['client_name']
+                client_language = new_client_form.cleaned_data['client_language']
+                client_contacts = new_client_form.cleaned_data['client_emails']
+                
+                shiny_new_client = Client(client_name = client_name, client_language=client_language)
+                shiny_new_client.save()
+                
+                for contact in client_contacts:
+                    print contact
+                    new_contact = Contact(client=shiny_new_client, contact_email=contact)
+                    new_contact.save()
+                
+                print client_contacts
+                
+                
+                                
+                return HttpResponse("OK")
+            else:
+                print new_client_form.errors.as_text()
+                return HttpResponse(new_client_form.errors.as_text())
+#             print new_client_form.cleaned_data
+#             print 'Raw Data: "%s"' % request.body
+            print new_client_form.errors
+    return HttpResponse("OK")

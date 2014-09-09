@@ -103,3 +103,6 @@ class ClientForm(forms.Form):
     client_name = ClientNameField(max_length = 128)
     client_language = forms.ModelChoiceField(queryset=Language.objects.all(), to_field_name="slug")
     client_emails = MultiEmailField()
+    
+class WokForm(forms.Form):
+    pass

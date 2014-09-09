@@ -120,6 +120,24 @@ function Load_dlg_add_client(){
 };
 
 
+function Load_dlg_add_work(){
+	$( "#dlg_add_work" ).dialog({
+        autoOpen: false,
+        height: 450,
+        width: 450,
+        modal: true,
+        buttons: {
+        			"Create Work": function(){CreateClient();},
+        			Cancel: function() {
+        				$(this).dialog("close");
+        				$('#frm_add_work').trigger("reset");
+        				$("#dlg_add_work_errors").html("");
+        				}
+         		},
+         title: "Add new Work",        
+        });
+};
+
 //Delete contact confirm dialog
 function Load_dlg_del_contact(){
 	$( "#dlg_confirm_del_contact" ).dialog({
@@ -147,14 +165,20 @@ function Load_ui_elements(){
 	
 	Load_dlg_add_client();
 	Load_dlg_del_contact();
+	Load_dlg_add_work();
 
 	
 	//Add Create client button
 	$( "#btn_create_client" ).button();
+	$( "#btn_add_work" ).button();
 	//bind Create client dialog on click
 	$( "#btn_create_client" ).click(function() {
 	$( "#dlg_add_client" ).dialog( "open" );});
-	//
+	//btn_add_work
+	$( "#btn_add_work" ).click(function() {
+		$( "#dlg_add_work" ).dialog( "open" );})
+		
+		
 	$( "#client_language" ).selectmenu();
 	
 	
@@ -224,7 +248,7 @@ function CreateWork(){
 	var client_name = $( "#client_name" ).val();
 	var client_language = $( "#client_language" ).val();
 	var client_emails = $( "#client_emails" ).val();
-	var posting = $.post( "/rnr/add_new_client", {
+	var posting = $.post( "/rnr/add_new_work", {
 		ajax: "true",
 		"client_name": client_name,
 		"client_language" : client_language,

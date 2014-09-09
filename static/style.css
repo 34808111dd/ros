@@ -71,3 +71,10 @@ div#dlg_add_client input{
 	width:20px;
 	height:20px;
 }
+
+#work_start_time, #work_end_time{
+	display:inline-block;
+	width:40px;
+	
+	
+}
