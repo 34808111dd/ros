@@ -36,7 +36,7 @@ input {
 	margin: 2px 0px 2px 0px;
 }
 
-#dlg_add_client_errors {
+#dlg_add_client_errors, #dlg_add_work_errors {
 	
 	color:red;
 	background-color:gray;

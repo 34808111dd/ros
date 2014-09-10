@@ -98,7 +98,7 @@ class Work(models.Model):
     work_circuit = models.CharField(max_length = 128)
     work_start_date = models.DateTimeField()
     work_end_date = models.DateTimeField()
-    work_definition = models.CharField(max_length =128)
+    work_definition = models.CharField(max_length = 128)
     
     def __unicode__(self):
         return self.work_number

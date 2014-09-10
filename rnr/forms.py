@@ -1,5 +1,5 @@
 from django import forms
-from models import DictRecord, Language, Contact, Client
+from models import DictRecord, Language, Contact, Client, Work, WorkType
 from django.core.validators import validate_email
 
 class UploadFileForm(forms.Form):
@@ -95,8 +95,14 @@ class ClientNameField(forms.CharField):
         # Use the parent's handling of required fields, etc.
         super(ClientNameField, self).validate(value)
         if Client.objects.filter(client_name=value).exists():
-                print dir(value)
                 raise forms.ValidationError("Client " + value + " already exists")
+
+class WorkNumber(forms.CharField):
+    def validate(self, value):
+        # Use the parent's handling of required fields, etc.
+        super(WorkNumber, self).validate(value)
+        if Work.objects.filter(work_number=value).exists():
+                raise forms.ValidationError("Work with number " + value + " already exists")
 
 
 class ClientForm(forms.Form):
@@ -105,4 +111,13 @@ class ClientForm(forms.Form):
     client_emails = MultiEmailField()
     
 class WokForm(forms.Form):
-    pass
+    '''
+    add work form
+    '''
+    work_number = WorkNumber(max_length = 128)
+    work_type = forms.ModelChoiceField(queryset=WorkType.objects.all(), to_field_name="slug")
+    work_circuit = forms.CharField(max_length = 128)
+    work_start_datetime = forms.DateTimeField(input_formats=["%m/%d/%Y %H:%M"])
+    work_end_datetime = forms.DateTimeField(input_formats=["%m/%d/%Y %H:%M"])
+    work_definition = forms.CharField(max_length=128)
+    

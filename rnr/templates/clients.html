@@ -86,13 +86,20 @@
 		<input autocomplete="off" id="work_start_time" class="time ui-timepicker-input" type="text">
 		<label for="end_date_datepicker">End date:</label>
 		<input type="text" id="end_date_datepicker">
+				<input autocomplete="off" id="work_end_time" class="time ui-timepicker-input" type="text">
+				
+		<label for="work_definition">Definition</label>
+		<input type="text" id="work_definition">
 		
-		<input autocomplete="off" id="work_end_time" class="time ui-timepicker-input" type="text">
+
 		<div id="dlg_add_work_errors"></div>
 	</fieldset>
 </form>
 </div>
-
 <button id="btn_add_work" onclick=Load_btn_del_contact()>Create new work</button>
+
+
+<div id="existing_works"></div>
+
 </body>
 </html>	

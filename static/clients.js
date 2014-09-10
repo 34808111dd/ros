@@ -56,6 +56,40 @@ function LoadClients() {
 	.done(Load_btn_del_contact());
 };
 
+function LoadWorks() {
+	//Clear existing data
+	$('#existing_works').html("");
+	//Get data from server in json
+	$.getJSON( "/rnr/clients_all", function(data) {
+		//for all clients in data
+		 
+		$.each( data, function( index, element ) {
+			var items = [];
+			var row = ""
+			row =row.concat("<tr>");
+			row =row.concat("<td id=" +  element.client_slug + ">");
+			row =row.concat(element.attribs.client_name);
+			row =row.concat("</td>");
+			row =row.concat("<td id=" +  element.attribs.client_language__slug + ">");
+			row =row.concat(element.attribs.client_language__language_name);
+			row =row.concat("</td>");
+			row =row.concat("<td>");
+			//for all contacts in client
+			$.each(element.contacts, function(index, element) {
+			var	btn = '<button ' + 'id="' + element.slug +'" class="btn_del_contact" type="button"></button>'
+				row =row.concat("<div class=contact_email id='"+element.slug + "'>" + element.contact_email + btn + "</div>");
+			});
+			row =row.concat("</tr>");
+			$('#existing_clients tbody').append(row);
+		});
+		Load_btn_del_contact();
+		
+	})
+	.done(Load_btn_del_contact());
+};
+
+
+
 function blah(){
 	var d = $(this).attr("id");
 	alert(d);
@@ -127,7 +161,7 @@ function Load_dlg_add_work(){
         width: 450,
         modal: true,
         buttons: {
-        			"Create Work": function(){CreateClient();},
+        			"Create Work": function(){CreateWork();},
         			Cancel: function() {
         				$(this).dialog("close");
         				$('#frm_add_work').trigger("reset");
@@ -243,30 +277,37 @@ function CreateClient(){
 
 
 function CreateWork(){
-	//send form data as ajax
-	//alert("sended");
-	var client_name = $( "#client_name" ).val();
-	var client_language = $( "#client_language" ).val();
-	var client_emails = $( "#client_emails" ).val();
+	
+	var work_number = $( "#work_number" ).val();
+	var work_type = $( "#work_type" ).val();
+	var work_circuit = $( "#work_circuit" ).val();
+	
+	var work_start_datetime = $('#start_date_datepicker').val() + " " + $('#work_start_time').val();
+	var work_end_datetime = $('#end_date_datepicker').val() + " " + $('#work_end_time').val();
+	var work_definition = $( "#work_definition" ).val();
+	
 	var posting = $.post( "/rnr/add_new_work", {
 		ajax: "true",
-		"client_name": client_name,
-		"client_language" : client_language,
-		"client_emails":client_emails,
+		"work_number": work_number,
+		"work_type" : work_type,
+		"work_circuit":work_circuit,
+		"work_start_datetime" : work_start_datetime,
+		"work_end_datetime":work_end_datetime,
+		"work_definition":work_definition,
 		'csrfmiddlewaretoken':getCookie('csrftoken'),
 	});
 	// Put the results in a div
 	posting.done(function( data ) {
 		//alert(data);
 		if (data === "OK"){
-			$("#dlg_add_client_errors").html("");
-			$('#frm_add_client').trigger("reset");
-			$('#dlg_add_client').dialog("close");
+			$("#dlg_add_work").html("");
+			$('#frm_add_work').trigger("reset");
+			$('#dlg_add_work').dialog("close");
 			LoadClients();
 			return true;
 		}
 		else{
-			$("#dlg_add_client_errors").html(data);
+			$("#dlg_add_work_errors").html(data);
 			return false;
 		};	
 	});

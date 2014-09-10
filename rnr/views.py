@@ -6,10 +6,10 @@ from django.shortcuts import render_to_response
 
 #from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseRedirect
-from forms import UploadFileForm, NewRecordForm, RecordsForm, ClientForm
+from forms import UploadFileForm, NewRecordForm, RecordsForm, ClientForm, WokForm
 from django.template import RequestContext, Context
 
-from models import DictRecord, Client, Contact, Language, WorkType
+from models import DictRecord, Client, Contact, Language, WorkType, Work
 from processor.csvfile import CSVProcessor, CSVParseOptions
 
 import simplejson
@@ -183,6 +183,42 @@ def clients_get_all_json( request ):
     return response
 
 
+
+
+
+def work_get_all_json( request ):
+    work_objs = Work.objects.values('slug', 'work_number', 'work_type__slug','client_language__language_name')  
+    clients = []
+    for client_obj in client_objs:
+        
+        client_slug = client_obj.pop('slug')
+        
+        
+        contact_objs = Contact.objects.filter(client__slug=client_slug).values('slug', 'contact_email')
+        print type(contact_objs)
+        print type(client_objs)
+#         cont_json = simplejson.dumps({'emails':list(contact_objs})
+        client_data={'client_slug':client_slug, 'attribs':client_obj, 'contacts':list(contact_objs)}
+        
+        clients.append(client_data)
+#         
+#         [c for c in contact_objs]
+            
+    
+    print clients
+    clients = simplejson.dumps(clients)
+    response = HttpResponse(clients, content_type='application/json')
+#    response['Content-Type'] = "application/json"
+#    response.write("[{'attribs': {'client_language__language_name': u'English', 'client_name': u'BT', 'client_language__slug': u'a9a4754BAccD'}, 'client_slug': u'b0aeAFC923bD', 'contacts': [{'contact_email': u'bt@bt.com', 'slug': u'F94ECa3226B2'}, {'contact_email': u'root@bt.com', 'slug': u'cb3C1f46E725'}]}, {'attribs': {'client_language__language_name': u'English', 'client_name': u'Telia Sonera', 'client_language__slug': u'a9a4754BAccD'}, 'client_slug': u'BA8CeC5DFD8e', 'contacts': [{'contact_email': u'admin@telia.com', 'slug': u'F2dAc015db4a'}, {'contact_email': u'admin@telia.net', 'slug': u'Aae1c3c805D4'}, {'contact_email': u'root@telia.com', 'slug': u'1accA0A7Ff8E'}]}]")
+    return response
+
+
+
+
+
+
+
+
 def get_work_types_json( request ):
     if request.method == 'GET':
         work_types = WorkType.objects.values('slug', 'worktype_name')
@@ -231,30 +267,24 @@ def add_new_work( request ):
     
     if request.is_ajax():
         if request.method == 'POST':
-            new_client_form = ClientForm(request.POST)
-            if new_client_form.is_valid():
+            new_work_form = WokForm(request.POST)
+            if new_work_form.is_valid():
                 
-                client_name = new_client_form.cleaned_data['client_name']
-                client_language = new_client_form.cleaned_data['client_language']
-                client_contacts = new_client_form.cleaned_data['client_emails']
-                
-                shiny_new_client = Client(client_name = client_name, client_language=client_language)
-                shiny_new_client.save()
-                
-                for contact in client_contacts:
-                    print contact
-                    new_contact = Contact(client=shiny_new_client, contact_email=contact)
-                    new_contact.save()
-                
-                print client_contacts
-                
-                
-                                
+                work_number = new_work_form.cleaned_data['work_number']
+                work_type = new_work_form.cleaned_data['work_type']
+                work_circuit = new_work_form.cleaned_data['work_circuit']
+                work_start_datetime = new_work_form.cleaned_data['work_start_datetime']
+                work_end_datetime = new_work_form.cleaned_data['work_end_datetime']
+                work_definition = new_work_form.cleaned_data['work_definition']
+                shiny_new_work = Work(work_number=work_number, work_type=work_type, \
+                                      work_circuit = work_circuit, work_start_date = work_start_datetime,\
+                                      work_end_date = work_end_datetime, work_definition = work_definition)
+                shiny_new_work.save()                
                 return HttpResponse("OK")
             else:
-                print new_client_form.errors.as_text()
-                return HttpResponse(new_client_form.errors.as_text())
+                print new_work_form.errors.as_text()
+                return HttpResponse(new_work_form.errors.as_text())
 #             print new_client_form.cleaned_data
 #             print 'Raw Data: "%s"' % request.body
-            print new_client_form.errors
+            print new_work_form.errors
     return HttpResponse("OK")
