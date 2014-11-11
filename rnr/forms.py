@@ -1,9 +1,17 @@
 from django import forms
-from models import DictRecord, Language, Contact, Client, Work, WorkType
+from models import DictRecord, Language, Contact, Client, Work, WorkType, OutageType, NotificationTemplate
 from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+#import simplejson
+
+#===============================================================================
+# For CSVProcessor
+#===============================================================================
 
 class UploadFileForm(forms.Form):
     '''
+    Upload Form used in views.csv_parser
+    Sample:
             self.options['output_encoding']='1251'
             self.options['output_format'] = [';"']
             self.options['ignore_decode_errors'] = "Yes"
@@ -52,10 +60,16 @@ class UploadFileForm(forms.Form):
     
 
 class NewRecordForm(forms.Form):
+    '''
+    Add records to dictionary form. Used in views.csv_parser
+    '''
     init_word = forms.CharField()
     replace_word = forms.CharField()
 
 class RecordsForm(forms.Form):
+    '''
+    All records form, every record displayed as checkbox (for deletion usability)
+    '''
     records = DictRecord.objects.all().order_by('replace_word')
     _l = ( (x.init_word, x.replace_word) for x in records )
     OPTIONS = tuple(_l)
@@ -65,28 +79,33 @@ class RecordsForm(forms.Form):
     
     
 #===============================================================================
-# Clients
+# For RNR Application
 #===============================================================================
 
 
 class MultiEmailField(forms.Field):
+    '''
+    Multiemail field for django object.
+    Every email should be valid (should allow usage of non-unique email addresses)
+    '''
     def to_python(self, value):
         "Normalize data to a list of strings."
-
         # Return an empty list if no input was given.
         if not value:
             return []
         value = value.replace(" ","")
-        return value.split(',')
+        return set(value.split(','))
 
     def validate(self, value):
         "Check if value consists only of valid emails."
         # Use the parent's handling of required fields, etc.
         super(MultiEmailField, self).validate(value)
         for email in value:
-            validate_email(email)
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise forms.ValidationError("Email " + email + " is not in valid format, use user@host.dom, user2@host2.dom")
             if Contact.objects.filter(contact_email=email).exists():
-                print dir(email)
                 raise forms.ValidationError("Email " + email + " already exists")
 
 class ClientNameField(forms.CharField):
@@ -106,18 +125,42 @@ class WorkNumber(forms.CharField):
 
 
 class ClientForm(forms.Form):
+    '''
+    Form for adding new client.
+    '''
     client_name = ClientNameField(max_length = 128)
     client_language = forms.ModelChoiceField(queryset=Language.objects.all(), to_field_name="slug")
     client_emails = MultiEmailField()
     
-class WokForm(forms.Form):
+class WorkForm(forms.Form):
     '''
-    add work form
+    Form for adding new work.
     '''
     work_number = WorkNumber(max_length = 128)
     work_type = forms.ModelChoiceField(queryset=WorkType.objects.all(), to_field_name="slug")
     work_circuit = forms.CharField(max_length = 128)
     work_start_datetime = forms.DateTimeField(input_formats=["%m/%d/%Y %H:%M"])
     work_end_datetime = forms.DateTimeField(input_formats=["%m/%d/%Y %H:%M"])
-    work_definition = forms.CharField(max_length=128)
+    work_region = forms.CharField(max_length=128)
+
+class OutageForm(forms.Form):
+    '''
+    Add outage for notification.
+    '''
+    outage_type = forms.ModelChoiceField(queryset=OutageType.objects.all(), to_field_name="slug")
+    outage_work = forms.ModelChoiceField(queryset=Work.objects.all(), to_field_name="slug")
+    outage_client = forms.ModelChoiceField(queryset=Client.objects.all(), to_field_name="slug")
+    outage_circuit = forms.CharField(max_length=128)
+    outage_start_date = forms.DateTimeField(input_formats=["%m/%d/%Y %H:%M"])
+    outage_end_date = forms.DateTimeField(input_formats=["%m/%d/%Y %H:%M"])
+    outage_description = forms.CharField(max_length=128)
+    
+class NotificationForm(forms.Form):
+    '''
+    Add notification for client
+    '''
+    notification_client = forms.ModelChoiceField(queryset=Client.objects.all(), to_field_name="slug")
+    notification_work = forms.ModelChoiceField(queryset=Work.objects.all(), to_field_name="slug")
+    notification_template = forms.ModelChoiceField(queryset=NotificationTemplate.objects.all(), to_field_name="slug")
+    notification_complete_text = forms.CharField(widget=forms.Textarea)
     

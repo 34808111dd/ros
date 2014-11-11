@@ -45,7 +45,7 @@
 		<div id="all_records">
 			<form method="post" action="/rnr/del_record/">
 				{% csrf_token %}
-    				{{ all_records_form.as_p }}
+    				{{ all_records_form.as_table }}
 				<input type="submit" id="Dbutton" value="DESTROY!" />
 			</form>
 		</div>

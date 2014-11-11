@@ -78,3 +78,21 @@ div#dlg_add_client input{
 	
 	
 }
+#workspace, #existing_works, #existing_notifications, #existing_outages{
+	display:inline-block;
+	border: 1px;
+	border-style: solid;
+	border-color: #dddddd;
+	}
+#ol_existing_works{
+	list-style-type:none;
+}
+
+#ol_existing_works .ui-selecting{
+	background:gray;
+	
+}
+#ol_existing_works .ui-selected{
+	background:gray;
+	
+}

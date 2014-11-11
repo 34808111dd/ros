@@ -1,0 +1,62 @@
+body {
+  padding-top: 70px;
+  padding-bottom: 30px;
+}
+
+.theme-dropdown .dropdown-menu {
+  position: static;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.theme-showcase > p > .btn {
+  margin: 5px 0;
+}
+
+.theme-showcase .navbar .container {
+  width: auto;
+}
+ 
+.init_notifications{
+		color:white;
+		background-color: blue;
+		float:right;
+	}
+
+.sent_notifications{
+		color:white;
+		background-color: green;
+		float:right;
+	}
+
+.sent_error_notifications{
+		color:white;
+		background-color: red;
+		float:right;
+	}
+	
+
+
+.init_cancel_notifications{
+		
+		color:black;
+		background-color: blue;
+		float:right;
+	}
+
+.sent_cancel_notifications{
+		color:black;
+		background-color: green;
+		float:right;
+	}
+
+.sent_error_cancel_notifications{
+		color:black;
+		background-color: red;
+		float:right;
+	}
+	
+.contextMenu{
+		display: none;
+		position: absloute;
+	}

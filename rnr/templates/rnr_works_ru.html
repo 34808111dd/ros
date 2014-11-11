@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+<script src="/static/external/jquery/jquery.js"></script>
+<script src="/static/external/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/static/jquery-ui.js"></script>
+	<link rel="stylesheet" type="text/css" href="/static/jquery-ui.css" />
+	<link rel="stylesheet" type="text/css" href="/static/jquery.timepicker.css" />
+	<script src="/static/jquery.timepicker.min.js"></script>
+<style type=text/css>
+	body {
+		padding-top:60px;
+		padding-bottom:60px;
+	}
+	.contact_email{
+		display:inline;
+		clear:left;
+	}
+	.btn_del_contact {
+		clear:left;
+	
+	}
+	
+	
+	
+	</style>
+	
+	
+	<script type="text/javascript">
+	
+	function Load_dlg_add_work(){
+		$( "#dlg_add_work" ).dialog({
+	        autoOpen: false,
+	        height: 450,
+	        width: 450,
+	        modal: true,
+	        buttons: {
+	        			"Create Work": function(){CreateWork();},
+	        			Cancel: function() {
+	        				$(this).dialog("close");
+	        				$('#frm_add_work').trigger("reset");
+	        				$("#dlg_add_work_errors").html("");
+	        				}
+	         		},
+	         title: "Add new Work",
+	        });
+	};
+	
+	
+	function get_worktypes_all_json() {
+		//client_language
+		$('#work_type option').remove();
+		
+		$.getJSON( "/rnr/get_worktypes_all_json", function(data) {
+			$.each( data, function( index, element ) {
+				$("#work_type").append("<option value=" + element.worktype__slug + ">" + element.worktypedesc + "</option>");
+			});
+		});
+		
+	};
+	
+	function set_language(lang){
+		//alert(lang);
+		$.getJSON( "/rnr/set_language", {"lang":lang}, function(data) {
+			//alert("data");
+			location.reload(false);
+			});
+		
+		
+	}
+	
+	function get_locations_all_json() {
+		//client_language
+		$('#work_location option').remove();
+		
+		$.getJSON( "/rnr/get_locations_all_json", function(data) {
+			$.each( data, function( index, element ) {
+				$("#work_location").append("<option value=" + element.slug + ">" + element.location_name + "</option>");
+			});
+		});
+		
+	};
+	
+	
+	function get_regions(){
+		
+		var location_slug = $("#work_location option:selected").attr("value");
+		$("#work_region").html("");
+		
+		$.getJSON( "/rnr/get_regions_json", {"location_slug":location_slug} , function(data){
+			$.each(data, function(index, element){
+				$("#work_region").append("<option value=" + element.slug + ">" + element.region_name + "</option>")
+			});
+		}).done(function(){
+			$("#work_region").prop("selectedIndex",-1);
+		});
+		
+	};
+	
+	function LoadWorks() {
+		//Clear existing data
+		$('#existing_works tbody > tr').remove();
+		//Get data from server in json
+		$.getJSON( "/rnr/get_works_json", function(data) {
+			$.each( data, function( index, element ){
+				var items = [];
+				var row = ""
+				//success, error, warning, info
+				
+				cls_work_status = ""
+				switch (element.work_state){
+				case "Upcoming":
+					cls_work_status = 'class="success"'
+					break;
+				case "Pending":
+					cls_work_status = 'class="warning"'
+					break;
+				case "Completed":
+					cls_work_status = 'class="info"'
+					break;
+				case "Canceled":
+					cls_work_status = 'class="error"'
+					break;
+				}
+				
+				row =row.concat("<tr " + cls_work_status + " id=" +  element.slug + ">");
+				row =row.concat("<td>");
+				row =row.concat(element.work_number);
+				
+/*				btn_string='<div class="btn-group">\
+<button id="sample_slug" class="btn btn-small dropdown-toggle" data-toggle="dropdown">Action <span class="caret"></span></button>\
+<ul class="dropdown-menu">\
+<li><a href="#">View all notifications</a></li>\
+<li><a href="#">Add Notification</a></li>\
+<li><a href="#">Lets the Spam Begins!</a></li>\
+<li><a href="#">Cancel Work</a></li>\
+<li class="divider"></li>\
+<li><a href="#">Delete Work</a></li>\
+</ul>\
+</div>'
+				
+				row =row.concat(btn_string) */
+				if (element.init_notifications != "0"){
+					row = row.concat('<a href="/rnr/notifications/?work_slug=' + element.slug + '&notification_type=notification&notification_state=init' + '"><span class="badge init_notifications">' + element.init_notifications +'</span></a>')
+				};
+				
+				if (element.sent_notifications != "0"){
+					row = row.concat('<a href="/rnr/notifications/?work_slug=' + element.slug + '&notification_type=notification&notification_state=sent' + '"><span class="badge sent_notifications">' + element.sent_notifications +'</span></a>')
+				};
+				
+				if (element.sent_error_notifications != "0"){
+					row = row.concat('<a href="/rnr/notifications/?work_slug=' + element.slug + '&notification_type=notification&notification_state=sent_error' + '"><span class="badge sent_error_notifications">'  + element.sent_error_notifications +'</span></a>')
+				};
+				
+				
+				if (element.init_cancel_notifications != "0"){
+					row = row.concat('<a href="/rnr/notifications/?work_slug=' + element.slug + '&notification_type=cancel&notification_state=init' + '"><span class="badge init_cancel_notifications">' + element.init_cancel_notifications +'</span></a>')
+				};
+				
+				if (element.sent_cancel_notifications != "0"){
+					row = row.concat('<a href="/rnr/notifications/?work_slug=' + element.slug + '&notification_type=cancel&notification_state=sent' + '"><span class="badge sent_cancel_notifications">' + element.sent_cancel_notifications +'</span></a>')
+				};
+				
+				if (element.sent_error_cancel_notifications != "0"){
+					row = row.concat('<a href="/rnr/notifications/?work_slug=' + element.slug + '&notification_type=cancel&notification_state=sent_error' + '"><span class="badge sent_error_cancel_notifications">' + element.sent_error_cancel_notifications +'</span></a>')
+				};
+				
+				row =row.concat("</td>");
+				row =row.concat("<td>");
+				row =row.concat(element.work_type);
+				row =row.concat("</td>");
+				
+				row =row.concat("<td>");
+				row =row.concat(element.work_circuit);
+				row =row.concat("</td>");
+				
+				row =row.concat("<td>");
+				row =row.concat(element.work_start_date);
+				row =row.concat("</td>");
+				
+				
+				row =row.concat("<td>");
+				row =row.concat(element.work_end_date);
+				row =row.concat("</td>");
+				
+				row =row.concat("<td>");
+				row =row.concat(element.work_region);
+				row =row.concat("</td>");
+				
+				row =row.concat("</tr>");
+				
+				$('#existing_works tbody').append(row);
+			});
+			//$( ".work" ).click(function() {
+			//	LoadNotifications($(this).attr("id"));
+			//	});
+			});
+
+	};
+	
+	function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+};
+	
+	
+	function CreateWork(){
+		
+		var work_number = $( "#work_number" ).val();
+		var work_type = $( "#work_type" ).val();
+		var work_circuit = $( "#work_circuit" ).val();
+		
+		var work_start_datetime = $('#start_date_datepicker').val() + " " + $('#work_start_time').val();
+		var work_end_datetime = $('#end_date_datepicker').val() + " " + $('#work_end_time').val();
+		var work_region = $( "#work_region" ).val();
+		
+		var posting = $.post( "/rnr/add_new_work", {
+			ajax: "true",
+			"work_number": work_number,
+			"work_type" : work_type,
+			"work_circuit":work_circuit,
+			"work_start_datetime" : work_start_datetime,
+			"work_end_datetime":work_end_datetime,
+			"work_region":work_region,
+			'csrfmiddlewaretoken':getCookie('csrftoken'),
+		});
+		// Put the results in a div
+		posting.done(function( data ) {
+			//alert(data);
+			if (data === "OK"){
+			//	$("#dlg_add_work").html("");
+			//	$('#frm_add_work').trigger("reset");
+			//	$('#dlg_add_work').dialog("close");
+				//LoadClients();
+			$("#dlg_add_work").modal('hide');
+			LoadWorks();
+			}
+			else{
+				$("#dlg_add_work_errors").html(data);
+			};	
+		});
+	};
+	
+	
+	
+	
+	function init_menu(){
+		
+			  var $contextMenu = $("#contextMenu");
+			  $contextMenu.hide();
+			  $("body").on("contextmenu", "#existing_works tr", function(e) {
+				  //alert(e.pageX);
+				  var obj = $(this).closest("tr");
+				work_slug = obj.attr("id");
+				obj.css("font-weight","Bold");
+				$("#contextMenu ul li a").eq(0).attr("href","/rnr/notifications/?work_slug="+work_slug);
+				$("#contextMenu ul li a").eq(1).attr("href","/rnr/notifications/?work_slug="+work_slug+"&create_notification=yes");
+				
+			    $contextMenu.css({left: e.clientX, top: e.clientY-900, display:"block"});
+			    return false;
+			  });
+			  $("body").on("click", function(){$contextMenu.hide();});
+			  $contextMenu.on("click", "a", function() {
+				  //alert($(this).html());
+			     $contextMenu.hide();
+			  });
+	};
+	
+	
+	
+	$(document).ready(function(){
+		//Load_dlg_add_work();
+		get_worktypes_all_json();
+		get_locations_all_json();
+		LoadWorks();
+		//Load_dlg_del_contact();
+		$( "#create_work" ).click(function() {
+			CreateWork();
+		});
+		//LoadClients();
+		//get_languages_all_json();
+		 $( "#start_date_datepicker" ).datepicker({
+		 showButtonPanel: true
+		 });
+	 $( "#end_date_datepicker" ).datepicker({
+		 showButtonPanel: true
+		 });
+		 $('#work_start_time').timepicker({ 'timeFormat': 'H:i' });
+		 $('#work_end_time').timepicker({ 'timeFormat': 'H:i' });
+	
+		 $("#work_location").prop("selectedIndex",-1);
+		$("#work_region").prop("selectedIndex",-1);
+			
+		$('#work_location').change(function(){
+			get_regions();
+		});
+		$('#change_lang_ru').click(function(){
+			set_language("ru");
+			});
+		
+		$('#change_lang_en').click(function(){
+			set_language("en");
+			});
+		init_menu();
+		
+		
+	});
+	
+	
+	</script>
+
+
+    <title>RNR Application</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/external/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="/static/external/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+
+	<link href="/static/bootstrap_custom.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]
+    <script src="../../assets/js/ie-emulation-modes-warning.js"></script> -->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  
+    <body role="document">
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">RNR Prilozhenie</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/rnr">RNR Prilozhenie</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/rnr">Domoy</a></li>
+            <li class="active"><a href="/rnr/works">Raboty</a></li>
+            <li><a href="/rnr/notifications">Opoveschenija</a></li>
+            <li><a href="/rnr/clients">Klienty</a></li>
+            <li><a href="#about">Nemnogo o</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">Nav header</li>
+                <li><a href="#">Separated link</a></li>
+                <li><a href="#">One more separated link</a></li>
+              </ul>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Language<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="">Russian</a></li>
+                <li><a href="">English</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    
+    
+    <div class="container theme-showcase" role="main">
+<p><H1>Work's management page</H1></p>
+
+<table id="existing_works" class="table table-bordered">
+<thead>
+<tr>
+<th>Work Number</th>
+<th>Work Type</th>
+<th>Work Circuit</th>
+<th>Start date</th>
+<th>End date</th>
+<th>Region</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+
+</table>
+
+
+
+
+
+<!-- Button trigger modal -->
+<button class="btn btn-primary" data-toggle="modal" data-target="#dlg_add_work">
+Create Work
+</button>
+
+
+<button class="btn btn-primary" id="change_lang_ru">
+RU
+</button>
+
+
+<button class="btn btn-primary" id="change_lang_en">
+EN
+</button>
+
+<!-- 
+
+
+
+
+
+
+
+
+<br>
+<br>
+
+<div class="btn-group">
+<button id="sample_slug" class="btn dropdown-toggle" data-toggle="dropdown">Action <span class="caret"></span></button>
+<ul class="dropdown-menu">
+<li><a href="#">View all notifications</a></li>
+<li><a href="#">Add Notification</a></li>
+<li><a href="#">Lets the Spam Begins!</a></li>
+<li><a href="#">Cancel Work</a></li>
+<li class="divider"></li>
+<li><a href="#">Delete Work</a></li>
+</ul>
+</div>
+
+
+
+
+
+Test modal -->
+
+
+<div class="modal fade" id="dlg_add_work" tabindex="-1" role="dialog" aria-labelledby="dlg_add_workLabel" aria-hidden="true">
+
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="dlg_add_workLabel">Create Work</h4>
+	</div>
+	
+<div class="modal-body">
+<form id=frm_add_work>
+	<fieldset>
+	
+	<div class="control-group">
+		<label class ="control-label" for="work_number">Work Number</label>
+		<div class="controls">
+			<input type="text" name="work_number" id="work_number" class="form-control">
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="work_type">Work type</label>
+		<div class="controls">
+		<select class="form-control" name="work_type" id="work_type">
+		</select> 
+		</div>
+	</div>
+
+	<div class="control-group">
+		<label class ="control-label" for="work_circuit">Work Circuit</label>
+		<div class="controls">
+			<input type="text" name="work_circuit" id="work_circuit" class="form-control">
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="start_date_datepicker">Start date:</label>
+		<div class="controls">
+		<input type="text" id="start_date_datepicker">
+		<input autocomplete="off" id="work_start_time" class="time ui-timepicker-input" type="text">
+		</div>
+	</div>
+
+	<div class="control-group">
+		<label class ="control-label" for="end_date_datepicker">End date:</label>
+		<div class="controls">
+		<input type="text" id="end_date_datepicker">
+		<input autocomplete="off" id="work_end_time" class="time ui-timepicker-input" type="text">
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="work_location">Work Location:</label>
+		<div class="controls">
+		<select name="work_location" id="work_location" class="form-control">
+		</select>
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="work_region">Work region:</label>
+		<div class="controls">
+		<select name="work_region" id="work_region" class="form-control">
+		</select>
+		</div>
+	</div>
+		
+		<div id="dlg_add_work_errors"></div>
+	</fieldset>
+</form>
+</div>
+
+
+<div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" id="create_work" class="btn btn-primary">Create</button>
+      </div>
+
+</div>
+</div>
+
+</div>
+
+
+</div>
+      
+      <div id="contextMenu" class="dropdown clearfix">
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:static;margin-bottom:5px;">
+<li><a href="#">View all notifications</a></li>
+<li><a href="#">Add Notification</a></li>
+<li><a href="#">Lets the Spam Begins!</a></li>
+<li><a href="#">Cancel Work</a></li>
+<li class="divider"></li>
+<li><a href="#">Delete Work</a></li>
+    </ul>
+  </div>
+    </body>
+    </html>
