@@ -24,3 +24,13 @@ class RecordParseError(Exception):
         
     def __str__(self):
         return self.work_number + " " + self.problem_string
+    
+    
+'''
+Errors:
+Types:
+    - File Parsing Error
+    - Invalid value in field (Non-unique, not formatted, etc)
+    - Database error
+    - SMTP error
+'''

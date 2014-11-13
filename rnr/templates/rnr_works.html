@@ -38,7 +38,10 @@
 text-align:left;
 /*background-color:#ffa;*/
 }
-	
+	.tasker{
+	position:absolute;
+	right: 500px;
+	}
 	</style>
 	
 	
@@ -120,11 +123,11 @@ text-align:left;
 		
 		var work_filter_pending = $("#work_filter_pending").prop('checked');
 		var work_filter_upcoming = $("#work_filter_upcoming").prop('checked');
-		var work_filter_past = $("#work_filter_past").prop('checked');
-		var work_filter_date = $("#work_filter_date").val();
-		//alert(work_filter_date);
+		var work_filter_completed = $("#work_filter_completed").prop('checked');
+		var work_filter_number = $("#work_filter_number").val();
+		//alert(work_filter_number);
 		
-		$.getJSON( "/rnr/get_works_json", {"work_filter_pending":work_filter_pending, "work_filter_upcoming":work_filter_upcoming, "work_filter_past":work_filter_past, "work_filter_date":work_filter_date}, function(data) {
+		$.getJSON( "/rnr/get_works_json", {"work_filter_pending":work_filter_pending, "work_filter_upcoming":work_filter_upcoming, "work_filter_completed":work_filter_completed, "work_filter_number":work_filter_number}, function(data) {
 			$.each( data, function( index, element ){
 				var items = [];
 				var row = ""
@@ -235,6 +238,27 @@ text-align:left;
             }
         }
         return cookieValue;
+};
+
+function setFilterFlags(){
+	var c = getCookie("filter_works")
+	
+	if (c != null){
+		c=c.replace(/\\054/g, ',');
+		var n = JSON.parse(c);
+		n = JSON.parse(n);
+		$("#work_filter_number").val(n.work_filter_number);
+		$("#work_filter_upcoming").prop('checked', n.work_filter_upcoming==='true');
+		$("#work_filter_pending").prop('checked', n.work_filter_pending==='true');
+		$("#work_filter_completed").prop('checked', n.work_filter_completed==='true');
+		
+		//alert ("blah " + n.work_filter_completed);
+	}
+	else {
+		$("#work_filter_pending").prop('checked', true);
+		$("#work_filter_upcoming").prop('checked', true);
+		
+	}
 };
 	
 	
@@ -410,6 +434,7 @@ text-align:left;
 	
 	$(document).ready(function(){
 		//Load_dlg_add_work();
+		setFilterFlags();
 		$("#WorkContextMenu").contextmenu();
 		init_work_menu();
 		get_worktypes_all_json();
@@ -424,10 +449,10 @@ text-align:left;
 		 $( "#start_date_datepicker" ).datepicker({
 		 showButtonPanel: true
 		 });
-		 $( "#work_filter_date" ).datepicker({
-			 showButtonPanel: true,
-			 dateFormat:'yy-mm-dd'
-			 });
+		 //$( "#work_filter_number" ).datepicker({
+		//	 showButtonPanel: true,
+		//	 dateFormat:'yy-mm-dd'
+		//	 });
 	 $( "#end_date_datepicker" ).datepicker({
 		 showButtonPanel: true
 		 });
@@ -456,7 +481,7 @@ text-align:left;
 		
 		//var work_filter_pending = $("#work_filter_pending").prop('checked');
 		//var work_filter_upcoming = $("#work_filter_upcoming").prop('checked');
-		//var work_filter_past = $("#work_filter_past").prop('checked');
+		//var work_filter_completed = $("#work_filter_completed").prop('checked');
 		
 		
 		//$('#work_filter_pending').on("click", LoadWorks);
@@ -469,6 +494,9 @@ text-align:left;
 		  .submit( function( e ) {
 			  e.preventDefault();
 			  $("#file_parse_errors").html("");
+			  $("#file_parse_errors").html("");
+			  
+			  $("#btn_load_file_subm").prop('disabled',true);
 			  /*var frmdata = new FormData(this);
 			  
 			  var posting = $.post( "/rnr/load_works", {
@@ -498,9 +526,13 @@ text-align:left;
 		    		$("#file_parse_errors").html(k.error);
 		    		//alert(k.error);
 		    	}
+		    	$("#btn_load_file_subm").prop('disabled',false);
 		    });
 		    e.preventDefault();
 		  } ); 
+		
+		
+		
 		
 	});
 	
@@ -531,7 +563,7 @@ text-align:left;
     <body role="document">
 
     <!-- Fixed navbar -->
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
@@ -582,27 +614,66 @@ text-align:left;
     <div class="container theme-showcase" role="main">
 <p><H1>Work's management page</H1></p>
 
+
+<div class="tasker">
+<table border="1">
+<tr>
+	<td>
+	Total works
+	</td>
+	
+	<td>
+	stat
+	</td>
+</tr>
+<tr>
+	<td>
+	Total filtered
+	</td>
+	
+	<td>
+	stat
+	</td>
+</tr>
+
+<tr>
+	<td>
+	Current task
+	</td>
+	<td>
+	state
+	</td>
+</tr>
+
+</table>
+</div>
+
 <div class="row">
 <form class="form-inline">
 Work filter:
 <fieldset>
+
+<label class="control-label" for="work_filter_number">Number:</label>
+	<input type="text" id="work_filter_number"></input>
 <label class="checkbox">
-	<input type="checkbox" name="work_filter_upcoming" id="work_filter_upcoming" checked>Upcoming</input>
+	<input type="checkbox" name="work_filter_upcoming" id="work_filter_upcoming">Upcoming</input>
 </label>
 <label class="checkbox">
-	<input type="checkbox" name="work_filter_pending" id="work_filter_pending" checked>Pending</input>
+	<input type="checkbox" name="work_filter_pending" id="work_filter_pending">Pending</input>
 </label>
 <label class="checkbox">
-	<input type="checkbox" name="work_filter_past" id="work_filter_past">Past</input>
+	<input type="checkbox" name="work_filter_completed" id="work_filter_completed">Past</input>
 </label>
 
-<label class="control-label" for="work_filter_date">Added from</label>
-	<input type="text" id="work_filter_date"></input>
+
 
 <button type="button" class="btn btn-default" id="btn_filter_works">Filter</button>
 </fieldset>
 </form>
 </div>
+
+
+
 <br>
 <table id="existing_works" class="table table-bordered">
 <thead>
@@ -808,9 +879,11 @@ Upload file
 	
 	</fieldset>
 	<br>
+	<div id=work_progress_state class="bg_success">
+	</div>
 	<br>
 	<div id=file_parse_errors class="bg-danger"></div>
-	<button type="submit" class="btn btn-primary">Submit</button>
+	<button type="submit" id="btn_load_file_subm" class="btn btn-primary">Submit</button>
 </form>
 </div>
 

@@ -53,7 +53,7 @@ class EmailProcessor(object):
             for notification_obj in small_queue:
                 local_msg = MIMEText(notification_obj.notification_complete_text, _charset="utf-8")
                 #Debug purpose
-                tolist = ['alexander.shtyrkov@rt.ru']
+                tolist = ['alexander.shtyrkov@rt.ru', 'mnc@rt.ru']
                 local_msg['From'] = settings.message_from
                 local_msg['To'] = email.Utils.COMMASPACE.join(tolist)
                 local_msg['Subject'] = notification_obj.notification_subject

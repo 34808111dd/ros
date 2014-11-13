@@ -272,24 +272,25 @@ def get_work_types_json( request ):
 def get_works_json( request ):
     '''
 TODO    minimize db requests
-time bug utc in work_filter_date
     '''
-    
-    
     
     if request.method == 'GET':
 #       work_objects = Work.objects.all()#('slug', 'work_number', 'work_type__worktype_name', 'work_circuit', 'work_start_date', 'work_end_date')
         
-        
-        
-        work_filter_date = request.GET["work_filter_date"]
+        work_filter_number = request.GET["work_filter_number"]
         work_filter_pending = request.GET["work_filter_pending"]
         work_filter_upcoming = request.GET["work_filter_upcoming"]
-        work_filter_completed = request.GET["work_filter_past"]
+        work_filter_completed = request.GET["work_filter_completed"]
+        
+        work_filter_dict={"work_filter_number":work_filter_number,\
+                          "work_filter_pending":work_filter_pending,\
+                          "work_filter_upcoming":work_filter_upcoming,
+                          "work_filter_completed":work_filter_completed}
+        
+        print simplejson.dumps(work_filter_dict)
+        
+        
         query_time = timezone.now()
-        
-        
-        
         
         if work_filter_pending == "true":
             q_obj_p = Q(work_start_date__lte = query_time) & Q(work_end_date__gt = query_time)
@@ -306,9 +307,11 @@ time bug utc in work_filter_date
         else:
             q_obj_c = Q()
         
-        if work_filter_date:
-            work_date = datetime.date(*[int(x) for x in work_filter_date.split("-")])
-            q_obj_df = Q(work_added__gte = work_date)
+        if work_filter_number:
+            #work_date = datetime.date(*[int(x) for x in work_filter_number.split("-")])
+            #q_obj_df = Q(work_added__gte = work_date)
+            q_obj_df = Q(work_number__icontains = work_filter_number)
+            
         else:
             q_obj_df = Q()
         
@@ -317,9 +320,7 @@ time bug utc in work_filter_date
         print work_objects.query
             #work_objects = work_objects.filter(work_start_date__lte = timezone.now()).filter(work_end_date__gt = timezone.now())
 #            print work_objects.query
-            
 #            print work_objects
-        
         #if work_filter_pending == "true":
         #    work_objects = work_objects.filter(work_start_date__gte = timezone.now()).filter(work_end_date__gt = timezone.now())
        
@@ -329,6 +330,7 @@ time bug utc in work_filter_date
         
         lang = request.COOKIES.get('lang', None)
         print "work requested",lang
+        
         for work in work_objects:
             d={}
             d["slug"] = work.slug
@@ -394,10 +396,14 @@ time bug utc in work_filter_date
         # #l1 = pending_works_objects + upcoming_works_objects + completed_works_objects
         # print len(l1)
         #=======================================================================
-        
+#TODO - fix the bug with sort by date (sorting based on day number only)
         l = sorted(l, reverse=True, key=lambda x: x["work_start_date"])
         works = simplejson.dumps(l)
         response = HttpResponse(works, content_type='application/json')
+        response.set_cookie(key="filter_works", value=simplejson.dumps(work_filter_dict), max_age=365*24*60*60, expires=None, path='/')
+        
+        
+        
         return response
     
 def get_work_name_json(request):
@@ -948,17 +954,20 @@ def gen_notification(request):
             
             #print notification_type_slug
             #print my_shiny_new_object["MW"]
-            
+
+#TODO Use list join, not +="\n"
             
             for maintenance_window in my_shiny_new_object["MW"]:
-                outages_text += maintenance_window['mw_name'] + "\n\n"
+                outages_text += maintenance_window['mw_name'] + "\n"
                 for outage in maintenance_window["mw_outages"]:
                     print outage.keys()
                     outage_type = OutageType.objects.get(slug=outage["outage_type"])
                     
                     outage_template = OutageTemplate.objects.get(outagetemplate_language = notification_language, outagetemplate_outagetype = outage_type)
                     outage_template_text = outage_template.outagetemplate_text
-                    outages_text += outage_template_text.replace("%circuit_name%",outage['outage_channel']) + "\n\n\n"
+                    outages_text += outage_template_text.replace("%circuit_name%",outage['outage_channel']) + "\n"
+                    
+                outages_text +="\n"
                 
             notification_body = notification_template.notificationtemplate_text
             notification_body = notification_body.replace("%work_number%", work_number)
