@@ -418,12 +418,20 @@ class WorkContainer(object):
         return channel_string #.encode(self.parse_options.options['output_encoding'])
         
     def lookup_outage_type(self, outages_set):
+        
+#TODO error on looking up translation for non-existing OutageCondition (4-6 KR == 4-6 KRP)
+        
         '''
         return outage type object
         '''
 #        print "looking up outages:"
 
         translated = []
+        
+        for x in outages_set:
+            print x
+        #print self.OutageConditions
+        
         
         for x in outages_set:
             outage_translated = filter(lambda _x: _x.outagecond_name == x, self.OutageConditions)[0]

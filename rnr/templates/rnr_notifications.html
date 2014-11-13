@@ -57,6 +57,7 @@
 	var outage_tr_obj = "";
 	var outage_types = {};
 	var notification_types = [];
+	var work_numbers = [];
 	
 
 
@@ -83,82 +84,97 @@ function getParameterByName(name) {
 
 
 
-	function get_notifications(){
-		
-		$('#existing_notifications tbody > tr').remove();
-		work_slug = getParameterByName("work_slug");
-		get_work_name(work_slug);
-		get_client_names_json();
-		
-		notification_type = getParameterByName("notification_type");
-		notification_state = getParameterByName("notification_state")
-		params = {}
-		
-		if (work_slug !="") {
-			params.work_slug = work_slug;
-		}
-		
-		if (notification_type != "") {
-			params.notification_type = notification_type;
-		}
-		
-		if (notification_state != "") {
-			params.notification_state = notification_state;
-		}
-		
-		
-		$.getJSON( "/rnr/get_notifications_json", params , function(data){
-			$.each(data, function(index, element){
-				
-				var row = "";
-				
-				row =row.concat("<tr id=" +  element.slug + ' class="tr_notification" data-toggle="context" data-target="#NotificationContextMenu">');
-				row =row.concat('<td class="td_notification_client">');
-				row =row.concat(element.notification_client__client_name);
-				row =row.concat("</td>");
-				
-				var notification_state_class = ' class="' + element.state_class +'"';
-				
-				//switch (element.notification_state__notificationstate_name){
-				//case "init":
-				//	notification_state_class = ' class="info" ';
-				//	break;
-				//case "sent":
-				//	notification_state_class = ' class="success" ';
-				//	break;
-				//case "sent_error":
-				//	notification_state_class = ' class="danger" ';
-				//	break;
-				//}
-				
-				row =row.concat('<td' + notification_state_class + '>');
-				row =row.concat(element.notification_state__notificationstate_name);
-				row =row.concat("</td>");
-				
-				var notification_type__notificationtype_name = ' class="' + element.type_class +'"';
-				
-				//switch (element.notification_type__notificationtype_name){
-				//case "notification":
-				//	notification_type__notificationtype_name = ' class="success" ';
-				//	break;
-				//case "cancel":
-				//	notification_type__notificationtype_name = ' class="info" ';
-				//	break;
-				//}
-				row =row.concat('<td' + notification_type__notificationtype_name + '>');
-				row =row.concat(element.notification_type__notificationtype_name);
-				row =row.concat("</td>");
-				$('#existing_notifications tbody').append(row);
-				
+
+function get_work_numbers_json(){
+		$.getJSON( "/rnr/get_work_numbers_json", function(data) {
+			work_numbers = []
+			$.each( data, function( index, element ){
+				work_numbers.push(element.work_number)
 			});
+			//clients = data;
+			//alert(clients);
+			//alert(client_names);
+			
+			$("#notification_filter_work_number").typeahead({
+				source:work_numbers, 
+				updater:function(item){
+					//alert(item);
+					return item;
+					}});
+		},'json');
+};
+
+function filter_notifications(){
+	var work_number = $("#notification_filter_work_number").val();
+	$.getJSON( "/rnr/get_work_slug", {"work_number":work_number}, function(data) {
+		//alert(data.slug);
+		work_slug = data.slug;
+	}).done(function(){
+		//alert("time to filter");
+		get_notifications();
 	});
-//TODO - REWORK to avoid request with null work_number
-	$("#work_number").prop("disabled",true);
-	if (getParameterByName("create_notification") && open_dialog==true){
-		//alert("Yes");
-		$("#dlg_add_notification").modal("show");
-	}
 	
+	
+}
+
+//REWORK IT
+	function get_notifications(){
+		//clear table
+		$('#existing_notifications tbody > tr').remove();
+		//if no work_slug presented - 
+		
+		//work_slug = getParameterByName("work_slug");
+		if (work_slug != null){
+			//$("#notification_filter_work_number").val()
+			get_work_name(work_slug);
+			get_client_names_json();
+		
+			notification_type = getParameterByName("notification_type");
+			notification_state = getParameterByName("notification_state")
+		
+			params = {}
+		
+			params.work_slug = work_slug;
+			
+			if (notification_type != "") {
+				params.notification_type = notification_type;
+			}
+			
+			if (notification_state != "") {
+				params.notification_state = notification_state;
+			}
+			
+			
+			$.getJSON( "/rnr/get_notifications_json", params , function(data){
+				$.each(data, function(index, element){
+					var row = "";
+					row =row.concat("<tr id=" +  element.slug + ' class="tr_notification" data-toggle="context" data-target="#NotificationContextMenu">');
+					row =row.concat('<td class="td_notification_client">');
+					row =row.concat(element.notification_client__client_name);
+					row =row.concat("</td>");
+					var notification_state_class = ' class="' + element.state_class +'"';
+					row =row.concat('<td' + notification_state_class + '>');
+					row =row.concat(element.notification_state__notificationstate_name);
+					row =row.concat("</td>");
+					var notification_type__notificationtype_name = ' class="' + element.type_class +'"';
+					row =row.concat('<td' + notification_type__notificationtype_name + '>');
+					row =row.concat(element.notification_type__notificationtype_name);
+					row =row.concat("</td>");
+					$('#existing_notifications tbody').append(row);
+					
+				});
+			});
+//TODO - REWORK to avoid request with null work_number
+	
+		
+			$("#work_number").prop("disabled",true);
+			
+			
+			//if going from add_new_notification
+			if (getParameterByName("create_notification") && open_dialog==true){
+				$("#dlg_add_notification").modal("show");
+			}
+		}
 	
 	};
 	
@@ -223,9 +239,12 @@ function get_client_names_json() {
 	
 	function get_work_name(slug) {
 		$.getJSON( "/rnr/get_work_name_json", {"slug":slug},function(data) {
-			//alert(data.work_number);
-		$("#work_number").val(data.work_number);
-		});
+		
+		}).done(function(data){
+			$("#work_number").val(data.work_number);
+			$("#notification_filter_work_number").val(data.work_number);
+		})
+		;
 	};
 	
 	function init_MW_menu(){
@@ -530,6 +549,14 @@ $(document).ready(
 		
 		get_notification_type_all_json();
 		get_outage_type_all_json();
+		get_work_numbers_json();
+		
+		work_slug = getParameterByName("work_slug");
+		//alert(work_slug);
+		
+		$("#btn_filter_notifications").click(function(){
+			filter_notifications();
+		});
 		
 		$("#start_date_datepicker").datepicker({
 			showButtonPanel : true
@@ -644,6 +671,17 @@ $(document).ready(
     
     <div class="container theme-showcase" role="main">
 <p><H1>Notifications management page</H1></p>
+
+<div class="row">
+<form class="form-inline">
+<fieldset>
+<label class="control-label" for="notification_filter_work_number">Find by work number:</label>
+	<input type="text" id="notification_filter_work_number"></input>
+<button type="button" class="btn btn-default" id="btn_filter_notifications">Find</button>
+</fieldset>
+</form>
+</div>
+
 
 <table id="existing_notifications" class="table table-bordered">
 <thead>

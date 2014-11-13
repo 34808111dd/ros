@@ -414,6 +414,15 @@ def get_work_name_json(request):
         response = HttpResponse(work, content_type='application/json')
         return response
     
+def get_work_slug(request):
+    if request.method == 'GET':
+        work_number = request.GET["work_number"]
+        work = Work.objects.get(work_number=work_number)
+        work = simplejson.dumps({"slug":work.slug})
+        response = HttpResponse(work, content_type='application/json')
+        return response    
+
+
 #def get_client_names_json(request):
 #    if request.method == 'GET':
 #        clients = Client.objects.all().values_list('client_name', flat=True)
@@ -428,6 +437,14 @@ def get_client_names_json(request):
         clients = simplejson.dumps(list(clients))
         #print clients
         response = HttpResponse(clients, content_type='application/json')
+        return response
+    
+def get_work_numbers_json(request):
+    if request.method == 'GET':
+        works = Work.objects.all().values('slug','work_number')
+        works = simplejson.dumps(list(works))
+        #print clients
+        response = HttpResponse(works, content_type='application/json')
         return response
     
     

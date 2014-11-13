@@ -40,7 +40,10 @@ urlpatterns = patterns('',
     
     url(r'languages_all', 'rnr.views.get_languages_all_json'),
     url(r'get_worktypes_all_json', 'rnr.views.get_worktypes_all_json'),
-       url(r'get_locations_all_json', 'rnr.views.get_locations_all_json'),
+    url(r'get_locations_all_json', 'rnr.views.get_locations_all_json'),
+    
+    url(r'get_work_numbers_json', 'rnr.views.get_work_numbers_json'),
+    url(r'get_work_slug', 'rnr.views.get_work_slug'),
     
     url(r'csv_parser/', 'rnr.views.csv_parser'),
     url(r'csv_process/', 'rnr.views.csv_process'),

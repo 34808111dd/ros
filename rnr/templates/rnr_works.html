@@ -10,6 +10,7 @@
 
 <script src="/static/external/jquery/jquery.js"></script>
 <script src="/static/external/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/external/bootstrap/js/bootstrap3-typeahead.min.js"></script>
 	<script src="/static/jquery-ui.js"></script>
 	<link rel="stylesheet" type="text/css" href="/static/jquery-ui.css" />
 	<link rel="stylesheet" type="text/css" href="/static/jquery.timepicker.css" />
@@ -46,6 +47,10 @@ text-align:left;
 	
 	
 	<script type="text/javascript">
+	
+	var work_numbers = [];
+	
+	
 	
 	function Load_dlg_add_work(){
 		$( "#dlg_add_work" ).dialog({
@@ -432,12 +437,32 @@ function setFilterFlags(){
 	};
 	
 	
+	function get_work_numbers_json(){
+		$.getJSON( "/rnr/get_work_numbers_json", function(data) {
+			work_numbers = []
+			$.each( data, function( index, element ){
+				work_numbers.push(element.work_number)
+			});
+			//clients = data;
+			//alert(clients);
+			//alert(client_names);
+			
+			$("#work_filter_number").typeahead({
+				source:work_numbers, 
+				updater:function(item){
+					//alert(item);
+					return item;
+					}});
+		},'json');
+};
+	
 	$(document).ready(function(){
 		//Load_dlg_add_work();
 		setFilterFlags();
 		$("#WorkContextMenu").contextmenu();
 		init_work_menu();
 		get_worktypes_all_json();
+		get_work_numbers_json();
 		get_locations_all_json();
 		LoadWorks();
 		//Load_dlg_del_contact();

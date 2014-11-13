@@ -129,6 +129,9 @@ class OutageConditions(models.Model):
     outagecond_name = models.CharField(max_length=64)
     outagecond_description = models.CharField(max_length=128)
     outagecond_translation = models.CharField(max_length=64)
+    
+    def __unicode__(self):
+        return self.outagecond_name
 
 
 class OutageType(models.Model):
