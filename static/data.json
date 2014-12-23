@@ -1,0 +1,6 @@
+[
+{'client_name': 'AT&T', 'client_display_name': u'At&T', 'client_language__language_name': 'English'},
+{'client_name': u'British Telecom', 'client_display_name': u'British Telecom', 'client_language__language_name': u'English'},
+{'client_name': u'China Netcom Europe', 'client_display_name': u'China Netcom Europe', 'client_language__language_name': u'English'},
+{'client_name': u'China Unicom', 'client_display_name': u'China Unicom', 'client_language__language_name': u'English'}
+]

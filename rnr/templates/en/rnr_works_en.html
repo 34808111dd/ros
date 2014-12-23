@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+<script src="/static/external/jquery/jquery.js"></script>
+<script src="/static/works.js"></script>
+<script src="/static/external/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/external/bootstrap/js/bootstrap3-typeahead.min.js"></script>
+	<script src="/static/jquery-ui.js"></script>
+	<link rel="stylesheet" type="text/css" href="/static/jquery-ui.css" />
+	<link rel="stylesheet" type="text/css" href="/static/jquery.timepicker.css" />
+	<script src="/static/jquery.timepicker.min.js"></script>
+<style type=text/css>
+	body {
+		padding-top:60px;
+		padding-bottom:60px;
+	}
+	.contact_email{
+		display:inline;
+		clear:left;
+	}
+	.btn_del_contact {
+		clear:left;
+	
+	}
+	
+	#WorkContextMenu {
+		position:absolute;
+		display:none;
+	}
+	#wip_image {
+		display:none;
+	}
+	#wip_image_file_parse {
+		display:none;
+	}
+	
+	
+	.form-inline .control-label{
+/* text-align:right; */
+text-align:left;
+/*background-color:#ffa;*/
+}
+	#tasker{
+	position:relative;
+	float:right;
+	}
+	
+	#div_filter{
+	position:relative;
+	float:left;
+	margin-left:0px;
+	}
+
+/*tmp hide reset button*/
+#btn_reset_queue{
+display:none;
+}
+	
+	</style>
+	
+	
+
+
+    <title>RNR Application</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/external/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="/static/external/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+
+	<link href="/static/bootstrap_custom.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]
+    <script src="../../assets/js/ie-emulation-modes-warning.js"></script> -->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  
+    <body role="document">
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">RNR Application</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/rnr">RNR Application</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/rnr">Home</a></li>
+            <li class="active"><a href="/rnr/works">Works</a></li>
+            <li><a href="/rnr/notifications">Notifications</a></li>
+            <li><a href="/rnr/clients">Clients</a></li>
+            <li><a href="/rnr/about">About</a></li>
+            <li><a href="mailto:alexander.shtyrkov@rt.ru">Contact</a></li>
+            
+            <!--
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">Nav header</li>
+                <li><a href="#">Separated link</a></li>
+                <li><a href="#">One more separated link</a></li>
+              </ul>
+            </li>
+            
+            -->
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Language<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="/rnr/set_language?lang=ru">Russian</a></li>
+                <li><a href="/rnr/set_language?lang=en">English</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    
+    
+    <div class="container theme-showcase" role="main">
+
+
+<div id="tasker">
+<table class="table table-bordered">
+<tr>
+	<td>
+	Total works
+	</td>
+	
+	<td id="works_total">
+	</td>
+</tr>
+<tr>
+	<td>
+	Total filtered
+	</td>
+	
+	<td id="works_selected">
+	</td>
+</tr>
+
+<tr>
+	<td>
+	Queue length
+	</td>
+	<td id="queue_len">
+	</td>
+</tr>
+
+</table>
+</div>
+
+<p><H1>Work's management page</H1></p>
+
+
+<div class="row" id="div_filter">
+<form class="form-inline">
+Work filter:
+<fieldset>
+<table>
+
+<tr>
+<td>
+<label class="control-label" for="work_filter_number">Number:</label>
+	<input type="text" id="work_filter_number"></input>
+</td>
+<td>
+<label class="checkbox">
+	<input type="checkbox" name="work_filter_upcoming" id="work_filter_upcoming">Upcoming</input>
+</label>
+<label class="checkbox">
+	<input type="checkbox" name="work_filter_pending" id="work_filter_pending">Pending</input>
+</label>
+<label class="checkbox">
+	<input type="checkbox" name="work_filter_completed" id="work_filter_completed">Past</input>
+</label>
+</td>
+<td>
+<button type="button" class="btn btn-default" id="btn_filter_reset">Reset</button>
+</td>
+
+</tr>
+<tr>
+<td>
+<label class="control-label" for="work_filter_from">From:&nbsp;&nbsp;</label>
+	<input type="text" id="work_filter_from"></input>
+</td>
+<td>
+<label class="control-label" for="work_filter_to">To:</label>
+	<input type="text" id="work_filter_to"></input>
+</td>
+<td>
+<button type="button" class="btn btn-default" id="btn_filter_works">Filter</button>
+<img id="wip_image" src="/static/images/ajax-loader.gif">
+
+</td>
+</tr>
+</table>
+</fieldset>
+</form>
+<button type="button" class="btn btn-default" id="btn_reset_queue">Reset Queue</button>
+
+</div>
+
+
+<table id="existing_works" class="table table-bordered">
+<thead>
+<tr>
+<th>Work Number</th>
+<th>Work Info</th>
+<th>Created</th>
+<th>Start date</th>
+<th>End date</th>
+<th>Region</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+
+</table>
+
+
+
+
+
+<!-- Button trigger modal -->
+<button class="btn btn-primary" data-toggle="modal" data-target="#dlg_add_work">
+Create Work
+</button>
+
+<button class="btn btn-primary" data-toggle="modal" data-target="#dlg_load_file">
+Upload file
+</button>
+<!--Modal create work-->
+
+
+<div class="modal fade" id="dlg_add_work" tabindex="-1" role="dialog" aria-labelledby="dlg_add_workLabel" aria-hidden="true">
+
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="dlg_add_workLabel">Create Work</h4>
+	</div>
+	
+<div class="modal-body">
+<form id=frm_add_work>
+	<fieldset>
+	
+	<div class="control-group" id="cg_work_number">
+		<label class ="control-label" for="work_number">Work Number</label>
+		<div class="controls">
+			<input type="text" name="work_number" id="work_number" class="form-control">
+			<span class="help-block" id="hb_work_number"></span>
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="work_type">Work type</label>
+		<div class="controls">
+		<select class="form-control" name="work_type" id="work_type">
+		</select> 
+		</div>
+	</div>
+	
+	<div class="control-group" id="cg_start_date">
+		<label class ="control-label" for="start_date_datepicker">Start date:</label>
+		<div class="controls">
+		<input type="text" id="start_date_datepicker">
+		<input autocomplete="off" id="work_start_time" class="time ui-timepicker-input" type="text">
+		<span class="help-block" id="hb_start_date"></span>
+		</div>
+	</div>
+
+	<div class="control-group" id="cg_end_date">
+		<label class ="control-label" for="end_date_datepicker">End date:</label>
+		<div class="controls">
+		<input type="text" id="end_date_datepicker">
+		<input autocomplete="off" id="work_end_time" class="time ui-timepicker-input" type="text">
+		<span class="help-block" id="hb_end_date"></span>
+		</div>
+	</div>
+	
+	
+	<div class="control-group">
+		<label class ="control-label" for="work_location">Work Location:</label>
+		<div class="controls">
+		<select name="work_location" id="work_location" class="form-control">
+		</select>
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="work_region">Work region:</label>
+		<div class="controls">
+		<select name="work_region" id="work_region" class="form-control">
+		</select>
+		</div>
+	</div>
+		
+	<div class="control-group" id="cg_work_add_app_errors">
+		<span class="help-block" id="hb_work_add_app_errors"></span>
+	</div>
+		
+	</fieldset>
+</form>
+</div>
+
+
+<div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" id="create_work" class="btn btn-primary">Create</button>
+      </div>
+
+</div>
+</div>
+
+</div>
+
+
+
+
+
+
+<!-- load file dialog -->
+
+
+
+<div class="modal fade" id="dlg_load_file" tabindex="-1" role="dialog" aria-labelledby="dlg_load_fileLabel" aria-hidden="true">
+
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="dlg_load_fileLabel">Load works from file</h4>
+	</div>
+	
+<div class="modal-body">
+<h3><p>Options</p></h3>
+<form id=frm_load_file enctype="multipart/form-data" method="post" action="/rnr/load_works">
+	<fieldset>
+	
+	<p>Parse file options:</p>
+	<div class="radio">
+	<label>
+		<input type="radio" name="FileParseOpts" id="FileParseOpts1" value="CreateNotifications" checked>
+		Generate Notifications automatically
+	</label>
+	</div>
+
+	<div class="radio">
+	<label>
+		<input type="radio" name="FileParseOpts" id="FileParseOpts2" value="CreateWorksOnly">
+		Only create works (notifications are manually added later)
+	</label>
+	</div>
+	
+	<div class="radio">
+	<label>
+		<input type="radio" name="FileParseOpts" id="FileParseOpts3" value="CheckErrors">
+		Only parse file and check errors
+	</label>
+	</div>
+
+	<p>If same work found in file:</p>
+	<div class="radio">
+	<label>
+		<input type="radio" name="ExstWorkOpts" id="ExstWorkOpts1" value="ReplaceOld" checked>
+		Replace old with new (all notifications will be lost!)
+	</label>
+	</div>
+
+	<div class="radio">
+	<label>
+		<input type="radio" name="ExstWorkOpts" id="ExstWorkOpts2" value="MergeNotifications">
+		Merge old with new (add non-existing notifications)
+	</label>
+	</div>
+	
+	<div class="radio">
+	<label>
+		<input type="radio" name="ExstWorkOpts" id="ExstWorkOpts3" value="IgnoreNew">
+		Ignore new.
+	</label>
+	</div>
+	
+	
+	<div class="control-group">
+	<label class ="control-label" for="time_format">Time format in notifications:</label>
+	<div class="controls">
+		<select name="time_format" id="time_format" class="form-control" disabled>
+			<option>UTC</option>
+			<option>GMT</option>
+		</select>
+		</div>
+	</div>
+	
+	
+		<div class="control-group">
+		<label class ="control-label" for="input_file">Input file</label>
+		<div class="controls">
+			<input type="file" name="input_file" id="input_file" class="form-control">
+		</div>
+	</div>
+	
+	</fieldset>
+	<br>
+	<div id=work_progress_state class="bg_success">
+	</div>
+	<br>
+	<div id=file_parse_errors class="bg-danger"></div>
+	<button type="submit" id="btn_load_file_subm" class="btn btn-primary">Submit</button>
+	<img id="wip_image_file_parse" src="/static/images/ajax-loader.gif">
+</form>
+</div>
+
+
+<div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+
+</div>
+</div>
+
+</div>
+
+
+
+
+<!-- Spam dialog  -->
+
+
+
+
+<div class="modal fade" id="dlg_send_messages" tabindex="-1" role="dialog" aria-labelledby="dlg_send_messagesLabel" aria-hidden="true">
+
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="dlg_load_fileLabel">Choose messages</h4>
+	</div>
+
+<div class="modal-body">
+<form id=frm_do_spam method="post" action="/rnr/send_all_notifications">
+<fieldset>
+
+	<p>Choose which notifications to send:</p>
+	
+
+	<div class="radio">
+	<label class="radio-inline">
+		<input type="radio" name="SpamNotifications" id="SpamNotifications" value="SpamNotifications" checked>
+		Send only notifications
+	</label>
+	</div>
+	
+	<div class="radio">
+	<label class="radio-inline">
+		<input type="radio" name="SpamNotifications" id="SpamNotifCancel" value="SpamNotifCancel">
+		Send only for cancel.
+	</label>
+	</div>
+	
+
+<p>Choose notification types</p>
+<div class="control-group">
+<label class="control-label" for="send_init_messages">
+	<input type="checkbox" name="send_init_messages" id="send_init_messages" checked>Send composed</input>
+</label>
+</div>
+
+<div class="control-group">
+<label class="control-label" for="send_error_messages">
+	<input type="checkbox" name="send_error_messages" id="send_error_messages">Send errored</input>
+</label>
+</div>
+
+<div class="control-group">
+<label class="control-label" for="send_sent_messages">
+	<input type="checkbox" name="send_sent_messages" id="send_sent_messages">Send already sent</input>
+</label>
+</div>
+</fieldset>
+<button type="submit" class="btn btn-primary" id="btn_do_spam">Do Spam</button>
+</form>
+</div>
+
+
+<div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+
+</div>
+</div>
+
+</div>
+
+
+
+
+
+
+
+<!-- Menu works -->
+
+<div id="WorkContextMenu" class="dropdown clearfix">
+<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:relative;margin-bottom:5px;"">
+	<li><a href="#">View all notifications</a></li>
+	<li><a href="#">Add Notification</a></li>
+	<li><a href="#">Lets the Spam Begins!</a></li>
+	<li><a href="#">Cancel Work</a></li>
+	<li class="divider"></li>
+	<li><a href="#">Delete Work</a></li>
+</ul>
+</div>
+
+
+</div>
+    </body>
+    </html>
