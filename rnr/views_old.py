@@ -35,6 +35,14 @@ utc_tz = timezone.utc
 
 
 
+@request_type('GET', True)
+def get_message_queue_len(request):
+    _x = EmailProcessor()
+    print "get_message_queue", _x, len(_x.notifications_queue)
+    response = HttpResponse(simplejson.dumps({"message_queue_len":len(_x.notifications_queue)}))
+    return response
+
+
 
 
 

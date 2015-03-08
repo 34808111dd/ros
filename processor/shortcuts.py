@@ -8,6 +8,12 @@ Shortcuts for:
 '''
 from django.http import HttpResponseBadRequest, Http404
 from django.core.exceptions import ObjectDoesNotExist
+from django.test import Client
+from Cookie import SimpleCookie
+import simplejson
+
+success_response = simplejson.dumps({'success':True,'error':[]})
+unsuccess_response = simplejson.dumps({'success':False,'error':[]})
 
 class request_type():
     '''
@@ -62,3 +68,26 @@ def http400onError(func):
         except Exception:
             return HttpResponseBadRequest()
     return wrapper
+
+
+
+def http_request(url, method='get', ajax=True, content_type = 'application/json', data=dict(), cookie = dict()):
+    cl = Client()
+    request = cl.get if method == 'get' else cl.post
+    if cookie:
+        _c = SimpleCookie()
+        for k, v in cookie.items():
+            _c[k] = v
+        cl.cookies=_c
+    #print 'data requested:',data
+    if ajax:
+        if content_type:
+            response = request(url, data=data, content_type=content_type, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        else:
+            response = request(url, data=data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    else:
+        if content_type:
+            response = request(url, data=data, content_type=content_type)
+        else:
+            response = request(url, data=data)
+    return response

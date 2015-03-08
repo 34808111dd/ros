@@ -26,7 +26,7 @@ urlpatterns = patterns('',
     url(r'get_outages_json', 'rnr.views_old.get_outages_json'),
     
 
-    url(r'gen_cancel', 'rnr.views_old.gen_cancel'),
+    #url(r'gen_cancel', 'rnr.views_old.gen_cancel'),
     url(r'get_regions_json', 'rnr.views_old.get_regions_json'),
     
     

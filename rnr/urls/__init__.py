@@ -9,6 +9,7 @@ from rnr.urls.old import old_urls
 from rnr.urls.works import work_urls
 from rnr.urls.notifications import notification_urls
 from rnr.urls.clients import client_urls
+from rnr.urls.dictionary import dictionary_urls
 
 from rnr.urls_old import urlpatterns
 
@@ -19,3 +20,4 @@ urlpatterns += old_urls
 urlpatterns += work_urls
 urlpatterns += notification_urls
 urlpatterns += client_urls
+urlpatterns += dictionary_urls

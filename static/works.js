@@ -233,6 +233,12 @@ function LoadWorks()
 						});
 					$('#wip_image').css({display:'none'});
 					$('#btn_filter_works').prop('disabled',false);
+				}).error(function(){
+					//something wrong with server
+					alert('Server returned an error while getting work list.');
+					$('#wip_image').css({display:'none'});
+					$('#btn_filter_works').prop('disabled',false);
+					
 				});
 	setTimeout(get_work_numbers_json, 5000);
 	//get_work_numbers_json();
@@ -469,7 +475,10 @@ function reset_FilterFlags(){
 						
 					  }
 					  else if ($(this).index()===3){
-						  gen_cancel(work_slug);
+						  if (confirm('Уверены, что хотите отменить работы?')){
+							gen_cancel(work_slug);
+						  }
+						  
 						  
 						  //alert("menu 4 selected. Not implemented yet");
 						  
@@ -484,8 +493,10 @@ function reset_FilterFlags(){
 						  
 					  }
 					  else if ($(this).index()===5){
-						  //alert("menu 5 selected");
-						  delete_work(work_slug);
+						//alert("menu 5 selected");
+						if (confirm('Уверены, что хотите удалить работы?')){
+							delete_work(work_slug);
+							}
 					  }
 				   $WorkContextMenu.hide();
 				});
@@ -687,6 +698,11 @@ function reset_FilterFlags(){
 		    	}
 		    	$("#btn_load_file_subm").prop('disabled',false);
 		    	$("#wip_image_file_parse").css({display:'none'});
+		    }).error(function(){
+		    	//if something is completely wrong, reset process indicator, add warning
+		    	$("#btn_load_file_subm").prop('disabled',false);
+		    	$("#wip_image_file_parse").css({display:'none'});
+		    	$("#file_parse_errors").html("http server returned an error.");
 		    });
 		    e.preventDefault();
 		  } ); 

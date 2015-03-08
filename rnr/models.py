@@ -12,6 +12,13 @@ def generate_slug():
     '''
     return ''.join([choice(SLUG_STRING) for _x in range(0, SLUG_LEN)])
 
+def init_work_state():
+    '''
+    default
+    '''
+    return WorkState.objects.get(id=1)
+    
+    
 class DictRecord(models.Model):
     '''
     Dictionary record for csv processor
@@ -43,6 +50,7 @@ class Client(models.Model):
     '''
     slug = models.SlugField(unique=True, default=generate_slug)
     client_name = models.CharField(unique=True, max_length=128)
+    client_display_name = models.CharField(unique=False, max_length=128)
     client_language = models.ForeignKey('Language')
     def __unicode__(self):
         return self.client_name
@@ -59,12 +67,14 @@ Contacts
     client = models.ForeignKey('Client')
     contact_email = models.EmailField(unique=False)
     
-    def delete(self, *args, **kargs):
-        if Contact.objects.filter(client=self.client).count() > 1:
-            super(Contact, self).delete(*args, **kargs)
-        else:
-            raise ValidationError("no way!")
-        print Contact.objects.filter(client=self.client).count()
+    #===========================================================================
+    # def delete(self, *args, **kargs):
+    #     if Contact.objects.filter(client=self.client).count() > 1:
+    #         super(Contact, self).delete(*args, **kargs)
+    #     else:
+    #         raise ValidationError("no way!")
+    #     print Contact.objects.filter(client=self.client).count()
+    #===========================================================================
     
     def __unicode__(self):
         return self.contact_email
@@ -98,19 +108,19 @@ class Work(models.Model):
     slug = models.SlugField(unique=True, default=generate_slug)
     work_number = models.CharField(unique=True, max_length=128)
     work_type = models.ForeignKey('WorkType')
-    work_circuit = models.CharField(max_length=128)
+#    work_circuit = models.CharField(max_length=128)
     work_start_date = models.DateTimeField()
     work_end_date = models.DateTimeField()
 #    work_location = models.ForeignKey('Location')
     work_region = models.ForeignKey('Region')
-    work_state = models.ForeignKey('WorkState', null=True, blank=True)
+    work_state = models.ForeignKey('WorkState', null=False, blank=False, default=init_work_state)
     work_added = models.DateTimeField()
     
-    def save(self, *args, **kargs):
-        self.work_state = WorkState.objects.get(id=1)
-        
-        
-        super(Work, self).save(*args, **kargs)
+#    def save(self, *args, **kargs):
+#        self.work_state = WorkState.objects.get(id=1)
+#        
+#        
+#        super(Work, self).save(*args, **kargs)
     
     def __unicode__(self):
         return self.work_number
@@ -325,3 +335,25 @@ class NotificationStateDescription(models.Model):
     def __unicode__(self):
         return self.notificationstatelang.language_name + " " + self.notificationstate.notificationstate_name
     
+class AppErrorType(models.Model):
+    '''
+    Application error types mapped to descriptions
+    '''
+    slug = models.SlugField(unique=True, default=generate_slug)
+    apperror_type = models.CharField(max_length=64)
+    apperror_desc = models.CharField(max_length=128)
+    
+    def __unicode__(self):
+        return self.apperror_desc
+
+    
+class AppErrorDescription(models.Model):
+    '''
+    Description based on user language
+    '''
+    slug = models.SlugField(unique=True, default=generate_slug)
+    apperror_desc_type = models.ForeignKey('AppErrorType')
+    apperror_desc_lang = models.ForeignKey('Language')
+    apperror_desc_desc = models.CharField(max_length=128)
+    def __unicode__(self):
+        return self.apperror_desc_desc

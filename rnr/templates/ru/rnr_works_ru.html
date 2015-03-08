@@ -112,24 +112,10 @@ display:none;
             <li class="active"><a href="/rnr/works">Работы</a></li>
             <li><a href="/rnr/notifications">Оповещения</a></li>
             <li><a href="/rnr/clients">Клиенты</a></li>
+            <li><a href="/rnr/dictionary">Словарь</a></li>
             <li><a href="/rnr/about">О приложении</a></li>
             <li><a href="mailto:alexander.shtyrkov@rt.ru">Обратная связь</a></li>
             
-            <!--
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Nav header</li>
-                <li><a href="#">Separated link</a></li>
-                <li><a href="#">One more separated link</a></li>
-              </ul>
-            </li>
-            
-            -->
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Язык<span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
@@ -174,7 +160,7 @@ display:none;
 </tr>
 <tr>
 <td colspan=2>
-<button type="button" class="btn btn-default" id="btn_reset_queue">Аварийный сброс очереди</button>
+<button type="button" class="btn btn-default" id="btn_reset_queue"><span class="glyphicon glyphicon-flash"></span>&nbsp;<span style="color:red">Аварийный сброс очереди</span></button>
 </td>
 </tr>
 
@@ -370,11 +356,11 @@ display:none;
 	</div>
 	
 <div class="modal-body">
-<h3><p>Options</p></h3>
+<h3><p>Настройки обработки</p></h3>
 <form id=frm_load_file enctype="multipart/form-data" method="post" action="/rnr/load_works">
 	<fieldset>
 	
-	<p>Parse file options:</p>
+	<p>Что делать с файлом:</p>
 	<div class="radio">
 	<label>
 		<input type="radio" name="FileParseOpts" id="FileParseOpts1" value="CreateNotifications" checked>
@@ -431,7 +417,7 @@ display:none;
 	
 	
 		<div class="control-group">
-		<label class ="control-label" for="input_file">Input file</label>
+		<label class ="control-label" for="input_file">Выбран файл:</label>
 		<div class="controls">
 			<input type="file" name="input_file" id="input_file" class="form-control">
 		</div>
@@ -443,14 +429,14 @@ display:none;
 	</div>
 	<br>
 	<div id=file_parse_errors class="bg-danger"></div>
-	<button type="submit" id="btn_load_file_subm" class="btn btn-primary">Submit</button>
+	<button type="submit" id="btn_load_file_subm" class="btn btn-primary">Начать обработку</button>
 	<img id="wip_image_file_parse" src="/static/images/ajax-loader.gif">
 </form>
 </div>
 
 
 <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
       </div>
 
 </div>
@@ -517,7 +503,7 @@ display:none;
 </label>
 </div>
 </fieldset>
-<button type="submit" class="btn btn-primary" id="btn_do_spam">спамспамспам</button>
+<button type="submit" class="btn btn-primary" id="btn_do_spam">Отправить</button>
 </form>
 </div>
 

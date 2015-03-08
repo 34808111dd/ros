@@ -12,12 +12,12 @@ from django.utils import timezone
 # templates for general requests
 #===============================================================================
 
-rnr_home_templates = {'en':'en/rnr_home.html', 'ru':'ru/rnr_home_ru.html'}
+rnr_home_templates = {'en':'en/rnr_home_en.html', 'ru':'ru/rnr_home_ru.html'}
 rnr_works_telmpates = {'en':'en/rnr_works_en.html', 'ru':'ru/rnr_works_ru.html'}
-rnr_notifications_telmpates = {'en':'rnr_notifications.html', 'ru':'rnr_notifications.html'}
-rnr_clients_telmpates = {'en':'rnr_clients.html', 'ru':'rnr_clients.html'}
-rnr_dictionary_templates = {'en':'rnr_dictionary.html', 'ru':'rnr_dictionary.html'}
-rnr_about_templates = {'en':'rnr_about.html', 'ru':'rnr_about.html'}
+rnr_notifications_telmpates = {'en':'en/rnr_notifications_en.html', 'ru':'ru/rnr_notifications_ru.html'}
+rnr_clients_telmpates = {'en':'en/rnr_clients_en.html', 'ru':'ru/rnr_clients_ru.html'}
+rnr_dictionary_templates = {'en':'en/rnr_dictionary_en.html', 'ru':'ru/rnr_dictionary_ru.html'}
+rnr_about_templates = {'en':'en/rnr_about_en.html', 'ru':'ru/rnr_about_ru.html'}
 
 #===============================================================================
 # Timezones

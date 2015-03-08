@@ -5,13 +5,13 @@ Created on Oct 24, 2014
 '''
 
 
-smtp_server_name = 'localhost'
-smtp_server_port = 25
-smtp_server_login = "user"
-smtp_server_password = r'pwd'
+smtp_server_name = 'anyhostname'
+smtp_server_port = 587
+smtp_server_login = "username"
+smtp_server_password = r'password'
 smtp_server_retry_timeout = 10
 
-message_reply_to = "noreply@localhost"
-message_from = "from@localhost"
+message_reply_to = "reply@anyhostname"
+message_from = "from@anyhostname"
 
-max_mesage_queue = 4
+max_mesage_queue = 4 #max quota

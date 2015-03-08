@@ -28,11 +28,11 @@ from rnr.forms import ClientForm, UpdateClientForm
 # Inner imports
 #===============================================================================
 
-from processor.shortcuts import request_type, lang_aware
+from processor.shortcuts import request_type, lang_aware, http400onError
 from processor.emails import EmailProcessor
 from processor.errors import ClientAlreadyExists, AppError
 
-
+#tested in rnr.tests.clients.views
 @request_type('GET', True)
 def clients_get_all_json( request ):
     client_objs = Client.objects.values('slug', 'client_name', 'client_language__slug','client_language__language_name', 'client_display_name')  
@@ -47,7 +47,8 @@ def clients_get_all_json( request ):
     response = HttpResponse(clients, content_type='application/json')
     return response
 
-
+#tested in rnr.tests.clients.views
+@http400onError
 @request_type('GET', True)
 def get_client_info(request):
     #===========================================================================
@@ -62,7 +63,7 @@ def get_client_info(request):
     response = HttpResponse(client_info_json, content_type='application/json')
     return response
 
-
+#tested in rnr.tests.clients.views
 @request_type('GET', True)
 def get_client_names_json(request):
     clients = Client.objects.all().values('slug','client_name')
@@ -70,14 +71,7 @@ def get_client_names_json(request):
     response = HttpResponse(clients, content_type='application/json')
     return response
 
-@request_type('GET', True)
-def get_message_queue_len(request):
-    _x = EmailProcessor()
-    print "get_message_queue", _x, len(_x.notifications_queue)
-    response = HttpResponse(simplejson.dumps({"message_queue_len":len(_x.notifications_queue)}))
-    return response
-
-
+#tested in rnr.tests.clients.views
 @csrf_exempt
 @request_type('POST', True)
 @lang_aware({'en':'English','ru':'Russian'})
@@ -109,10 +103,11 @@ def add_new_client(request, lang):
         except AppError as app_error:
             return HttpResponse(simplejson.dumps({"errors": {'client_name':app_error.app_error_desc_obj.apperror_desc_desc+e.error_string}, "success": False}) ,content_type='application/json')
 
-
+#tested in rnr.tests.clients.views
 @csrf_exempt
 @request_type('POST', True)
 @lang_aware({'en':'English','ru':'Russian'})
+@http400onError
 def update_client_info(request, lang):
     client_slug = request.POST["slug"]
     client_obj = Client.objects.get(slug=client_slug)
@@ -133,9 +128,11 @@ def update_client_info(request, lang):
             errors[error[0]]=error[1]
         return HttpResponse(simplejson.dumps({"errors": errors, "success": False}) ,content_type='application/json')
 
-
+#TODO replace answer with json answer
+#tested in rnr.tests.clients.views
 @csrf_exempt
 @request_type('POST', True)
+@http400onError
 def del_client(request):
     '''
     remove client, remove all contacts, remove notifications.
@@ -145,9 +142,11 @@ def del_client(request):
     client_obj.delete()
     return HttpResponse("OK")
 
-
+#TODO replace answer with json answer
+#tested in rnr.tests.clients.views
 @csrf_exempt
 @request_type('POST', True)
+@http400onError
 def del_contact(request):
     '''
     remove contact

@@ -25,3 +25,4 @@ def set_language(request):
         response.set_cookie(key="lang", value="en", max_age=365*24*60*60, expires=None, path='/')
     return response
 
+

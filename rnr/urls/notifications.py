@@ -16,6 +16,7 @@ notification_urls = patterns('',
                               url(r'del_notification', 'rnr.views.notifications.del_notification'),
                               url(r'get_notification_type_all_json', 'rnr.views.notifications.get_notification_type_all_json'),
                               url(r'get_notifications_json', 'rnr.views.notifications.get_notifications_json'),
-                              url(r'add_new_notification', 'rnr.views.notifications.add_new_notification'),
+#                              url(r'add_new_notification', 'rnr.views.notifications.add_new_notification'),
                               url(r'gen_notification', 'rnr.views.notifications.gen_notification'),
+                              url(r'gen_cancel', 'rnr.views.notifications.gen_cancel'),
                               )

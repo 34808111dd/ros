@@ -2,7 +2,8 @@ from django.contrib import admin
 from rnr.models import DictRecord, Language, Client, Contact, WorkType, Work, WorkState, NotificationState,\
 Notification, NotificationTemplate, NotificationType, OutageTemplate, Outage, OutageType, MaintenanceWindow,\
 Location, Region, WorkTypeDescription, WorkLocationDescription, WorkRegionDescription,\
-NotificationTypeDescription, OutageTypeDescription, NotificationStateDescription, OutageConditions
+NotificationTypeDescription, OutageTypeDescription, NotificationStateDescription, OutageConditions,\
+AppErrorType, AppErrorDescription
 
 admin.site.register(DictRecord)
 admin.site.register(Language)
@@ -34,3 +35,7 @@ admin.site.register(OutageTemplate)
 admin.site.register(OutageType)
 admin.site.register(OutageTypeDescription)
 admin.site.register(OutageConditions)
+
+
+admin.site.register(AppErrorType)
+admin.site.register(AppErrorDescription)

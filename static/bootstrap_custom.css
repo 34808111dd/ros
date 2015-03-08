@@ -18,19 +18,19 @@ body {
 }
  
 .init_notifications{
-		color:white;
+		color:#c0ffc0;
 		background-color: blue;
 		float:right;
 	}
 
 .sent_notifications{
-		color:white;
+		color:#c0ffc0;
 		background-color: green;
 		float:right;
 	}
 
 .sent_error_notifications{
-		color:white;
+		color:#c0ffc0;
 		background-color: red;
 		float:right;
 	}
@@ -39,19 +39,19 @@ body {
 
 .init_cancel_notifications{
 		
-		color:black;
+		color:#ff8080;
 		background-color: blue;
 		float:right;
 	}
 
 .sent_cancel_notifications{
-		color:black;
+		color:#ff8080;
 		background-color: green;
 		float:right;
 	}
 
 .sent_error_cancel_notifications{
-		color:black;
+		color:#ff8080;
 		background-color: red;
 		float:right;
 	}
@@ -59,4 +59,11 @@ body {
 .contextMenu{
 		display: none;
 		position: absloute;
+	}
+	
+
+#existing_works{
+	height: 500px;
+	overflow-y: scroll;
+	display: -moz-grid;
 	}

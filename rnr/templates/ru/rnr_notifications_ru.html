@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+<script src="/static/external/jquery/jquery.js"></script>
+<script src="/static/external/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/external/bootstrap/js/bootstrap3-typeahead.min.js"></script>
+
+	<script src="/static/jquery-ui.js"></script>
+	<script src="/static/notifications.js"></script>
+	<link rel="stylesheet" type="text/css" href="/static/jquery-ui.css" />
+	<link rel="stylesheet" type="text/css" href="/static/jquery.timepicker.css" />
+	<script src="/static/jquery.timepicker.min.js"></script>
+<style type=text/css>
+	body {
+		padding-top:60px;
+		padding-bottom:60px;
+	}
+	.contact_email{
+		display:inline;
+		clear:left;
+	}
+	.btn_del_contact {
+		clear:left;
+	
+	}
+	
+	#MWContextMenu {
+		z-index:1050;
+		position:absolute;
+		display:none;
+	}
+	
+	#OutageContextMenu {
+		z-index:1050;
+		position:absolute;
+		display:none;
+	}
+	
+	#NotificationContextMenu {
+		position:absolute;
+		display:none;
+	}
+		#div_filter{
+	position:relative;
+	float:left;
+	margin-left:0px;
+	}
+	
+	</style>
+	
+	
+
+
+    <title>Приложение РНР</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/external/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="/static/external/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+
+	<link href="/static/bootstrap_custom.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]
+    <script src="../../assets/js/ie-emulation-modes-warning.js"></script> -->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  
+    <body role="document">
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Приложение РНР</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/rnr">Приложение РНР</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/rnr">Домой</a></li>
+            <li><a href="/rnr/works">Работы</a></li>
+            <li class="active"><a href="/rnr/notifications">Оповещения</a></li>
+            <li><a href="/rnr/clients">Клиенты</a></li>
+            <li><a href="/rnr/dictionary">Словарь</a></li>
+            <li><a href="/rnr/about">О приложении</a></li>
+            <li><a href="mailto:alexander.shtyrkov@rt.ru">Обратная связь</a></li>
+            
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Язык<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="/rnr/set_language?lang=ru">Русский</a></li>
+                <li><a href="/rnr/set_language?lang=en">Английский</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    
+    
+    <div class="container theme-showcase" role="main">
+<p><H1>Управление оповещениями</H1></p>
+
+<div class="row" id="div_filter">
+<form class="form-inline">
+<fieldset>
+<label class="control-label" for="notification_filter_work_number">Поиск по номеру работ:</label>
+	<input type="text" id="notification_filter_work_number"></input>
+<button type="button" class="btn btn-default" id="btn_filter_notifications">Найти</button>
+</fieldset>
+</form>
+</div>
+
+
+<table id="existing_notifications" class="table table-bordered">
+<thead>
+<tr>
+<th>Имя клиенте</th>
+<th>Статус оповещения</th>
+<th>Тип оповещения</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+
+</table>
+
+
+
+
+
+
+<button class="btn btn-primary" data-toggle="modal" data-target="#dlg_add_notification">
+Создать оповещение
+</button>
+
+
+<!-- Modal add notification -->
+
+
+<div class="modal fade" id="dlg_add_notification" tabindex="-1" role="dialog" aria-labelledby="dlg_add_notificationLabel" aria-hidden="true">
+
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Закрыть</span></button>
+        <h4 class="modal-title" id="dlg_add_notificationLabel">Новое оповещение</h4>
+	</div>
+	
+<div class="modal-body">
+<form id=frm_add_notification>
+	<fieldset>
+	
+	<div class="control-group">
+		<label class ="control-label" for="work_number">Номер работ</label>
+		<div class="controls">
+			<input type="text" name="work_number" id="work_number" class="form-control">
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="client_name">Имя клиента</label>
+		<div class="controls">
+			<input type="text" name="client_name" id="client_name" class="form-control" data-provide="typeahead">
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="notification_type">Тип оповещения</label>
+		<div class="controls">
+		<select name="notification_type" id="notification_type" class="form-control">
+		</select>
+		</div>
+	</div>
+	
+		<div class="control-group">
+		
+		<div class="modal-body">
+		<table id="notification_outages" class="table table-bordered">
+			<thead>
+				<tr>
+				<th colspan="2">Окна и простои</th>
+				</tr>
+			</thead>
+		<tbody>
+		</tbody>
+		</table>
+		</div>
+		<button type="button" id="create_mw" class="btn btn-primary">Добавить MW</button>
+		</div>
+	
+	
+	<div class="control-group">
+		<label class ="control-label" for="notification_subject">Тема письма</label>
+		<div class="controls">
+			<input type="text" name="notification_subject" id="notification_subject" class="form-control">
+		</div>
+	</div>
+	
+	
+	<div class="control-group">
+		<label class ="control-label" for="notification_text">Текс письма</label>
+		<div class="controls">
+			<textarea name="notification_text" id="notification_text" class="form-control" rows="10"></textarea>
+		</div>
+	</div>
+		
+		<div id="dlg_add_work_errors"></div>
+	</fieldset>
+</form>
+</div>
+
+
+<div class="modal-footer">
+		<button type="button" id="generate_notification" class="btn btn-success">Сгенерировать текст</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+        <button type="button" id="save_notification" class="btn btn-primary">Сохранить оповещение</button>
+      </div>
+
+</div>
+</div>
+
+</div>
+
+
+
+
+
+<!-- Dialog add MW -->
+
+
+
+
+
+
+<div class="modal fade" id="dlg_add_MW" tabindex="-1" role="dialog" aria-labelledby="dlg_add_MWLabel" aria-hidden="true">
+
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Закрыть</span></button>
+        <h4 class="modal-title" id="dlg_add_MWLabel">Новое окно проведения работ (MW)</h4>
+	</div>
+	
+<div class="modal-body">
+<p>При ручном вводе время НЕ БУДЕТ преобразовано в UTC формат в оповещении.</p>
+<p>Введенное вами время будет использоваться в тексте оповещения AS-IS.</p>
+<form id=frm_add_MW>
+	<fieldset>
+	
+	<div class="control-group">
+		<label class ="control-label" for="start_date_datepicker">Начало:</label>
+		<div class="controls">
+		<input type="text" id="start_date_datepicker">
+		<input autocomplete="off" id="MW_start_time" class="time ui-timepicker-input" type="text">
+		</div>
+	</div>
+
+	<div class="control-group">
+		<label class ="control-label" for="end_date_datepicker">Окончание:</label>
+		<div class="controls">
+		<input type="text" id="end_date_datepicker">
+		<input autocomplete="off" id="MW_end_time" class="time ui-timepicker-input" type="text">
+		</div>
+	</div>
+	
+	</fieldset>
+</form>
+</div>
+
+
+<div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+        <button type="button" id="add_MW" class="btn btn-primary">Добавить</button>
+      </div>
+
+</div>
+</div>
+
+</div>
+
+
+
+<!-- Dialog add Outage -->
+
+
+
+
+
+
+<div class="modal fade" id="dlg_add_outage" tabindex="-1" role="dialog" aria-labelledby="dlg_add_outageLabel" aria-hidden="true">
+
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Закрыть</span></button>
+        <h4 class="modal-title" id="dlg_add_outageLabel">Добавление простоя к MW</h4>
+	</div>
+	
+<div class="modal-body">
+<form id=frm_add_outage>
+	<fieldset>
+	
+		<div class="control-group">
+		<label class ="control-label" for="outage_type">Тип простоя</label>
+		<div class="controls">
+		<select class="form-control" name="outage_type" id="outage_type">
+		</select>
+		</div>
+	</div>
+
+	<div class="control-group">
+		<label class ="control-label" for="channel_name">Название канала связи</label>
+		<div class="controls">
+			<input type="text" name="channel_name" id="channel_name" class="form-control">
+		</div>
+	</div>
+	
+	</fieldset>
+</form>
+</div>
+
+
+<div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+        <button type="button" id="add_outage" class="btn btn-primary">Добавить</button>
+      </div>
+
+</div>
+</div>
+
+</div>
+
+
+<!-- Menu MW-->
+
+
+<div id="MWContextMenu" class="dropdown clearfix">
+<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:relative;margin-bottom:5px;">
+<li><a href="#">Удалить MW</a></li>
+<li><a href="#">Добавить простой</a></li>
+</ul>
+</div>
+
+<!-- Menu Outage-->
+
+<div id="OutageContextMenu" class="dropdown clearfix">
+<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:relative;margin-bottom:5px;">
+<li><a href="#">Удалить простой</a></li>
+</ul>
+</div>
+
+<!-- Menu Notification-->
+
+<div id="NotificationContextMenu" class="open clearfix">
+<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:relative;margin-bottom:5px;">
+<li><a href="#">Посмотреть текст оповещения</a></li>
+<li><a href="#">Отправить оповещение клиенту</a></li>
+<li><a href="#">Удалить это оповещение</a></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Modal view notification -->
+
+
+<div class="modal fade" id="dlg_view_notification" tabindex="-1" role="dialog" aria-labelledby="dlg_view_notificationLabel" aria-hidden="true">
+
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Закрыть</span></button>
+        <h4 class="modal-title" id="dlg_view_notificationLabel">Просмотр оповещения</h4>
+	</div>
+	
+<div class="modal-body">
+<p>При необходимости здесь можно поменять текст и тему письма.</p>
+<form id=frm_view_notification>
+	<fieldset>
+	
+	<div class="control-group">
+		<label class ="control-label" for="dlg_view_notification_subject">Тема письма</label>
+		<div class="controls">
+			<input type="text" name="dlg_view_notification_subject" id="dlg_view_notification_subject" class="form-control" data-provide="typeahead">
+		</div>
+	</div>
+	
+	<div class="control-group">
+		<label class ="control-label" for="dlg_view_notification_text">Тело письма</label>
+		<div class="controls">
+			<textarea name="dlg_view_notification_text" id="dlg_view_notification_text" class="form-control" rows="15"></textarea>
+		</div>
+	</div>
+	</fieldset>
+</form>
+</div>
+
+
+<div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть без изменений</button>
+        <button type="button" id="update_notification" class="btn btn-primary">Сохранить изменения</button>
+      </div>
+
+</div>
+</div>
+
+</div>
+
+
+
+
+
+<!-- Div login form -->
+
+
+
+
+
+
+
+</div>
+    </body>
+    </html>

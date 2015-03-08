@@ -2,6 +2,8 @@ from django import forms
 from models import DictRecord, Language, Contact, Client, Work, WorkType, OutageType, NotificationTemplate
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from processor.errors import WorkAlreadyExists, WorkEndTimeLessThenStart, ClientAlreadyExists, InvalidDictRecord, AppError
+
 #import simplejson
 
 #===============================================================================
@@ -105,23 +107,34 @@ class MultiEmailField(forms.Field):
                 validate_email(email)
             except ValidationError:
                 raise forms.ValidationError("Email " + email + " is not in valid format, use user@host.dom, user2@host2.dom")
-            if Contact.objects.filter(contact_email=email).exists():
-                raise forms.ValidationError("Email " + email + " already exists")
+            #if Contact.objects.filter(contact_email=email).exists():
+            #    raise forms.ValidationError("Email " + email + " already exists")
+
+
+class LangField(forms.CharField):
+    '''
+    for language
+    '''
+    def clean(self, value):
+        print 'field value', value
+        print dir(self)
+        return forms.Field.clean(self, value)
 
 class ClientNameField(forms.CharField):
+#TODO - replace raised Validation Error to Client name not unique
     def validate(self, value):
         "Check if value consists only of valid emails."
         # Use the parent's handling of required fields, etc.
         super(ClientNameField, self).validate(value)
         if Client.objects.filter(client_name=value).exists():
-                raise forms.ValidationError("Client " + value + " already exists")
+                raise ClientAlreadyExists(value)
 
 class WorkNumber(forms.CharField):
     def validate(self, value):
         # Use the parent's handling of required fields, etc.
         super(WorkNumber, self).validate(value)
         if Work.objects.filter(work_number=value).exists():
-                raise forms.ValidationError("Work with number " + value + " already exists")
+                raise WorkAlreadyExists(value)
 
 
 class ClientForm(forms.Form):
@@ -129,8 +142,15 @@ class ClientForm(forms.Form):
     Form for adding new client.
     '''
     client_name = ClientNameField(max_length = 128)
+    client_display_name = forms.CharField(max_length = 128)
     client_language = forms.ModelChoiceField(queryset=Language.objects.all(), to_field_name="slug")
     client_emails = MultiEmailField()
+    
+class UpdateClientForm(forms.Form):
+    client_update_name = forms.CharField(max_length = 128)
+    client_update_display_name = forms.CharField(max_length = 128)
+    client_update_language = forms.ModelChoiceField(queryset=Language.objects.all(), to_field_name="slug")
+    client_update_emails = MultiEmailField()
     
 class WorkForm(forms.Form):
     '''
@@ -138,10 +158,20 @@ class WorkForm(forms.Form):
     '''
     work_number = WorkNumber(max_length = 128)
     work_type = forms.ModelChoiceField(queryset=WorkType.objects.all(), to_field_name="slug")
-    work_circuit = forms.CharField(max_length = 128)
     work_start_datetime = forms.DateTimeField(input_formats=["%m/%d/%Y %H:%M"])
     work_end_datetime = forms.DateTimeField(input_formats=["%m/%d/%Y %H:%M"])
     work_region = forms.CharField(max_length=128)
+    
+    def clean(self):
+        cleaned_data = super(WorkForm, self).clean()
+        cleaned_start_date = cleaned_data.get("work_start_datetime")
+        cleaned_end_date = cleaned_data.get("work_end_datetime")
+        
+        if cleaned_start_date and cleaned_end_date:
+            if cleaned_start_date >= cleaned_end_date:
+                raise WorkEndTimeLessThenStart(cleaned_start_date.strftime("%m.%d.%Y %H:%M") + ">=" +\
+                                               cleaned_end_date.strftime("%m.%d.%Y %H:%M"))
+        return cleaned_data
 
 class OutageForm(forms.Form):
     '''
@@ -164,3 +194,36 @@ class NotificationForm(forms.Form):
     notification_template = forms.ModelChoiceField(queryset=NotificationTemplate.objects.all(), to_field_name="slug")
     notification_complete_text = forms.CharField(widget=forms.Textarea)
     
+    
+class DictWordField(forms.CharField):
+    '''
+    Restrict user to not use space.
+    '''
+    def __init__(self, lang):
+        super(DictWordField, self).__init__()
+        self.lang = lang
+    
+    def validate(self, value):
+        super(DictWordField, self).validate(value)
+        if ' ' in value:
+            try:
+                raise InvalidDictRecord(value)
+            except InvalidDictRecord as e:
+                try:
+                    raise AppError(e.type_id, language = self.lang, error_string=e.error_string)
+                except AppError as app_error:
+                    raise forms.ValidationError(app_error.app_error_desc_obj.apperror_desc_desc +' ' + e.error_string)
+
+    
+class RnrDictRecordForm(forms.Form):
+    
+    #===========================================================================
+    # def __init__(self, *args, **kargs):
+    #     self.lang = kargs.pop('lang')
+    #     super(RnrDictRecordForm, self).__init__(*args, **kargs)
+    #     self.fields['lang'].initial = self.lang
+    #     
+    # lang = forms.CharField()
+    #===========================================================================
+    init_word = DictWordField('Russian')
+    replace_word = DictWordField('Russian')

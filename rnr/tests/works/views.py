@@ -5,6 +5,7 @@ Created on Dec 22, 2014
 '''
 import unittest
 from django.test import Client
+#from django.core.exceptions import ObjectDoesNotExist
 from rnr.models import Work, WorkType, WorkTypeDescription, Region
 import simplejson
 import Cookie
@@ -241,6 +242,42 @@ class TestWorkViews(unittest.TestCase):
         #=======================================================================
         # Bad requests should return Http400
         #=======================================================================
+        data = {'work_filter_number':'',
+                'work_filter_upcoming':'true',
+                'work_filter_completed':'false',
+                'work_filter_from':'2014-12-11',
+                'work_filter_to':'2015-12-13'
+                }
+        response = cl.get('/rnr/get_works_json', data=data, content_type='application/json', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
+        
+        response = cl.post('/rnr/get_works_json', content_type='application/json', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
+        
+        response = cl.post('/rnr/get_works_json')
+        self.assertEqual(response.status_code, 400)
+        
+        response = cl.get('/rnr/get_works_json')
+        self.assertEqual(response.status_code, 400)
+        
+    def test_delete_work(self):
+        #=======================================================================
+        # Good request
+        #=======================================================================
+        cl = Client()
+        w_obj = Work.objects.get(id=10)
+        data = {'work_slug':w_obj.slug}
+        response = cl.post('/rnr/delete_work', data=data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.content, simplejson.dumps({'success':True}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(Work.objects.filter(id=10)), 0)
+        #=======================================================================
+        # Bad requests should return Http400
+        #=======================================================================
+        response = cl.post('/rnr/delete_work', data={'blah':'blah'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
+        response = cl.get('/rnr/delete_work', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testWorkView']

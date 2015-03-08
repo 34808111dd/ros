@@ -11,17 +11,21 @@ NotificationType, WorkState, NotificationTemplate, WorkTypeDescription,\
 WorkLocationDescription, WorkRegionDescription, OutageType, OutageTemplate
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from processor.shortcuts import request_type, lang_aware
+from processor.shortcuts import request_type, lang_aware, http400onError, success_response
 from rnr.forms import NotificationForm
 from processor.emails import EmailProcessor
 from django.db.models import Q
 from general import local_tz
 
+
+#tested in rnr.tests.notifications.views
 @request_type('GET', True)
 @lang_aware({'en':'English','ru':'Russian'})
+@http400onError
 def get_notifications_json(request, lang):
     work_slug = request.GET["work_slug"]
-    notifications = Notification.objects.filter(notification_work__slug=work_slug).values("slug", "notification_client__client_name", "notification_type__notificationtype_name", "notification_state__notificationstate_name")
+    notifications = Notification.objects.filter(notification_work__slug = work_slug).values("slug", "notification_client__client_name", "notification_type__notificationtype_name", "notification_state__notificationstate_name")
+    
     if "notification_type" in request.GET:
         notification_type = request.GET["notification_type"]
         if notification_type:
@@ -51,7 +55,7 @@ def get_notifications_json(request, lang):
     response = HttpResponse(notifications, content_type='application/json')
     return response
 
-
+#tested in rnr.tests.notifications.views
 @request_type('GET', True)
 @lang_aware({'en':'English','ru':'Russian'})
 def get_notification_type_all_json(request, lang):
@@ -60,10 +64,10 @@ def get_notification_type_all_json(request, lang):
     response = HttpResponse(simplejson.dumps(list(notification_types)), content_type='application/json')
     return response
 
-
-#TODO - rework response as json
+#tested in rnr.tests.notifications.views
 @csrf_exempt
 @request_type('POST', True)
+@http400onError
 def del_notification(request):
     '''
     delete notification based on slug
@@ -71,30 +75,35 @@ def del_notification(request):
     notification_slug = request.POST["notification_slug"]
     notification_obj = Notification.objects.get(slug=notification_slug)
     notification_obj.delete()
-    return HttpResponse("OK")
+    return HttpResponse(success_response, content_type='application/json')
         
 
+#NOTUSED
 #TODO = rework response as json
-@csrf_exempt
-@request_type('POST', True)
-def add_new_notification( request ):
-    new_notification_form = NotificationForm(request.POST)
-    if new_notification_form.is_valid():
-        
-        notification_client = new_notification_form.cleaned_data['notification_client']
-        notification_work = new_notification_form.cleaned_data['notification_work']
-        notification_template = new_notification_form.cleaned_data['notification_template']
-        notification_complete_text = new_notification_form.cleaned_data['notification_complete_text']
-        shiny_new_notification = Notification(notification_client=notification_client,\
-                                              notification_work=notification_work,\
-                                              notification_template = notification_template,\
-                                              notification_complete_text = notification_complete_text)
-        shiny_new_notification.save()
-        return HttpResponse("OK")
-    else:
-        print new_notification_form.errors.as_text()
-        return HttpResponse(new_notification_form.errors.as_text())
+#===============================================================================
+# @csrf_exempt
+# @request_type('POST', True)
+# def add_new_notification(request):
+#     new_notification_form = NotificationForm(request.POST)
+#     if new_notification_form.is_valid():
+#         
+#         notification_client = new_notification_form.cleaned_data['notification_client']
+#         notification_work = new_notification_form.cleaned_data['notification_work']
+#         notification_template = new_notification_form.cleaned_data['notification_template']
+#         notification_complete_text = new_notification_form.cleaned_data['notification_complete_text']
+#         shiny_new_notification = Notification(notification_client=notification_client,\
+#                                               notification_work=notification_work,\
+#                                               notification_template = notification_template,\
+#                                               notification_complete_text = notification_complete_text)
+#         shiny_new_notification.save()
+#         return HttpResponse(success_response, content_type='application/json')
+#     else:
+#         print new_notification_form.errors.as_text()
+#         return HttpResponse(new_notification_form.errors.as_text())
+#===============================================================================
 
+#NOT INCLUDED IN TESTS
+#display BUG: added to queue notification considered already sent.
 #TODO = rework response as json
 @csrf_exempt
 @request_type('POST', True)
@@ -105,12 +114,12 @@ def send_notification(request):
     print e_processor
     e_processor.add_to_queue(notification_obj)
     e_processor.send_all()
-    notif_sent_state = NotificationState.objects.get(notificationstate_name='sent')
-    notification_obj.notification_state = notif_sent_state
-    notification_obj.save()
+    #notif_sent_state = NotificationState.objects.get(notificationstate_name='sent')
+    #notification_obj.notification_state = notif_sent_state
+    #notification_obj.save()
     return HttpResponse("OK")
 
-
+#NOT INCLUDED IN TESTS
 @csrf_exempt
 @request_type('POST', True)
 def send_all_notifications(request):
@@ -150,7 +159,10 @@ def send_all_notifications(request):
     sender.send_all()
     return HttpResponse(simplejson.dumps({"error":"","success":True, "total_added":lll.count()}), content_type='application/json')
 
+
+#tested in rnr.tests.notifications.views
 @request_type('GET', True)
+@http400onError
 def view_notification(request):
     notification_slug = request.GET["notification_slug"]
     notification_obj = Notification.objects.get(slug=notification_slug)
@@ -159,14 +171,16 @@ def view_notification(request):
     response = HttpResponse(notification_obj, content_type='application/json')
     return response
 
+#TODO replace ok with success_response, change data structure.
+#tested in rnr.tests.notifications.views
 @csrf_exempt
 @request_type('POST', True)
+@http400onError
 def save_notification(request):
     '''
     save notification, MW, outages in base
     '''
     my_shiny_new_object = json.loads(request.POST["test"])
-    
     work_slug = my_shiny_new_object["work_slug"]
     client_slug = my_shiny_new_object["client_slug"]
     notification_type_slug = my_shiny_new_object["notification_type_slug"]
@@ -182,9 +196,10 @@ def save_notification(request):
     notification_obj.save()
     return HttpResponse("ok")
 
-
+#tested in rnr.tests.notifications.views
 @csrf_exempt
 @request_type('POST', True)
+@http400onError
 def update_notification(request):
     '''
     Updates body and subject of notification
@@ -200,9 +215,10 @@ def update_notification(request):
         
         
         
-        
+#TODO replace answer with json object
 @csrf_exempt
 @request_type('POST', True)
+@http400onError
 def gen_cancel(request):
     work_slug = request.POST["work_slug"]
     work_obj = Work.objects.get(slug=work_slug)
@@ -229,11 +245,12 @@ def gen_cancel(request):
     else:
         return HttpResponse("already canceled")
 
+
 @csrf_exempt
 @request_type('POST', True)
+@http400onError
 def gen_notification(request):
     my_shiny_new_object = json.loads(request.POST["test"])
-    print my_shiny_new_object
     work_slug = my_shiny_new_object["work_slug"]
     client_slug = my_shiny_new_object["client_slug"]
     notification_type_slug = my_shiny_new_object["notification_type_slug"]
@@ -253,7 +270,6 @@ def gen_notification(request):
     
     outages_text = ""
     notification_template = NotificationTemplate.objects.get(notification_type = notification_type_obj,notificationtemplate_language = notification_language)
-
     
     #print notification_type_slug
     #print my_shiny_new_object["MW"]
@@ -263,12 +279,10 @@ def gen_notification(request):
     for maintenance_window in my_shiny_new_object["MW"]:
         outages_text += maintenance_window['mw_name'] + "\n"
         for outage in maintenance_window["mw_outages"]:
-            print 'outage:', outage
             outage_type = OutageType.objects.get(slug=outage["outage_type"])
             
             outage_template = OutageTemplate.objects.get(outagetemplate_language = notification_language, outagetemplate_outagetype = outage_type)
             outage_template_text = outage_template.outagetemplate_text
-            print outage_template_text
             outages_text += outage_template_text + '\n---\n' + outage['outage_channel']+'\n' #.replace("%circuit_name%",outage['outage_channel']) + "\n"
             
         outages_text +="\n"

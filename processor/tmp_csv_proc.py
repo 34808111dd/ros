@@ -10,9 +10,10 @@ import csv
 from django.utils import timezone
 #from datetime import datetime
 from collections import namedtuple
+from processor.errors import FileParseError, TimeParseError, UnknownWorkConditionError, UnknownClient, BlankWorkNumber
 
 
-from processor.errors import TimeParseError, RecordParseError
+#from processor.errors import RecordParseError
 
 FileRecord = namedtuple("FileRecord", ['client', 'date','condition','work_number', 'trakt', 'point', 'description', 'direction', 'type_of_use'])
 WorkRecord = namedtuple("WorkRecord",['work_number','work_types'])
@@ -29,10 +30,9 @@ utc_tz = timezone.utc
 
 
 class LocalWork():
-    def __init__(self, work_number, work_type, work_circuit, work_start_date, work_end_date, work_region, work_state):
+    def __init__(self, work_number, work_type, work_start_date, work_end_date, work_region, work_state):
         self.work_number = work_number
         self.work_type = work_type
-        self.work_circuit = work_circuit
         self.work_start_date = work_start_date
         self.work_end_date = work_end_date
         self.work_region = work_region
@@ -49,7 +49,7 @@ class LocalWork():
         if merge_notifications == False:
             
             tmp_work_obj=Work(work_number=self.work_number,work_type=self.work_type,\
-                              work_circuit=self.work_circuit,work_start_date=self.work_start_date,\
+                              work_start_date=self.work_start_date,\
                               work_end_date=self.work_end_date, work_region=self.work_region,\
                               work_state=self.work_state, work_added=save_date)
             tmp_work_obj.save()
@@ -194,13 +194,21 @@ class WorkContainer(object):
         
         reader = csv.reader(file_descriptor, delimiter=';', quotechar='"')
         #skip first lines
-        for _line_tuple in reader:
-            if len(_line_tuple[0]) == 1:
-                break
-#TODO - raise encoding error, assuming input file is in 1251 encoding
-        #self.contents = [ FileRecord(*_x) for _x in reader]
-        self.contents = [ FileRecord(*[y.decode('1251') for y in _x]) for _x in reader]
-    
+        try:
+            for _line_tuple in reader:
+                if len(_line_tuple[0]) == 1:
+                    break
+    #Raise file parsing error on wrong file format or encoding
+            #self.contents = [ FileRecord(*_x) for _x in reader]
+            self.contents = [ FileRecord(*[y.decode('1251') for y in _x]) for _x in reader]
+            if len(self.contents)==0:
+                raise Exception
+        except Exception:
+            raise FileParseError("")
+        finally:
+            file_descriptor.close()
+        
+        
     def populate_cache(self):
         '''
         Load variables from database
@@ -211,11 +219,6 @@ class WorkContainer(object):
         self.Clients = Client.objects.all()
         self.NotificationTypes = NotificationType.objects.all()
         self.OutageTypes = OutageType.objects.all()
-        
-        
-        
-        
-        
         self.NotificationTemplates = NotificationTemplate.objects.all()
         self.OutageTemplates = OutageTemplate.objects.all()
         self.Languages = Language.objects.all()
@@ -224,7 +227,8 @@ class WorkContainer(object):
         self.WorkLocationDescriptions = WorkLocationDescription.objects.all()
         self.OutageConditions = OutageConditions.objects.all()
         
-        self.EngLanguage = filter(lambda _x: _x.language_name == "English", self.Languages)[0]
+        #self.EngLanguage = filter(lambda _x: _x.language_name == "English", self.Languages)[0]
+        self.EngLanguage = Language.objects.get(language_name="English") #filter(lambda _x: _x.language_name == "English", self.Languages)[0]
         
         for _x in DictRecord.objects.all():
             self.translate_dictionary[_x.init_word] = _x.replace_word
@@ -236,10 +240,10 @@ class WorkContainer(object):
         Save work, Notifications, MW, outages
         '''
         
-        print same_work_options
+        #print same_work_options
         
         work_numbers = [ _x[0] for _x in Work.objects.values_list('work_number')]
-        print work_numbers
+        #print work_numbers
         
         if same_work_options == 'ReplaceOld':
             pass
@@ -254,7 +258,7 @@ class WorkContainer(object):
         for loc_work in self.Works:
             
             if loc_work.work_number in work_numbers:
-                print "ACHTUNG!"
+                print "Existing work found."
             
                 if same_work_options == 'ReplaceOld':
                     django_db_work_obj = Work.objects.get(work_number = loc_work.work_number)
@@ -336,7 +340,7 @@ class WorkContainer(object):
 #        print work_numbers
         
         if '' in work_numbers:
-            raise RecordParseError("Empty work number found in file.","Error: ")
+            raise BlankWorkNumber("")
         
         #cycle works
         for work_number in work_numbers:
@@ -344,25 +348,25 @@ class WorkContainer(object):
             work_records = filter(lambda x: x.work_number == work_number, self.contents)
 #Search WorkType object in cache
             worktype_dj_obj = filter(lambda _x: _x.id==2, self.WorkTypes)[0]
+
 #TODO Replace it with work info
-            work_circuit = ', '.join(list(set([x.point for x in work_records]))[:3])
-            
-            #work_circuit = ', '.join(list(set([x.client.split(';')[0].lower() for x in work_records]))[:3])
-            
-#select max and min work dates
+
+            #work_circuit = ', '.join(list(set([x.point for x in work_records]))[:3])
+            #select max and min work dates
             work_dates = set([x.date for x in work_records])
-#If error, raise TimeParseError, then raise RecordParseError
-#            print work_dates
+            
             try:
+                
+            #If error, raise TimeParseError, then raise RecordParseError
                 work_start_date, work_end_date = self.find_work_start_end_dates(work_dates)
-            except TimeParseError as e:
-                raise RecordParseError(work_number, e.problem_string)
+            except Exception:
+                raise TimeParseError(work_number)
 #            print work_start_date, work_end_date
 #TODO get value from cache, not from DB
             work_region_dj_obj = self.lookup_region(work_number)
             #work_region_dj_obj = filter(lambda _x: _x.id==3, self.Regions)[0]
 #TODO get valuse from cache
-            work_state_dj_obj = filter(lambda _x: _x.id==2, self.WorkStates)[0]
+            work_state_dj_obj = filter(lambda _x: _x.id==1, self.WorkStates)[0]
 #Create work
             #local_work_obj = Work(work_number=work_number, work_type=work_type,\
             #                    work_circuit=work_circuit, work_start_date=work_start_date,\
@@ -370,7 +374,7 @@ class WorkContainer(object):
             #                    work_state=work_state)
             #local_work_obj.save()
             local_work_obj = LocalWork(work_number=work_number, work_type=worktype_dj_obj,\
-                                     work_circuit=work_circuit, work_start_date=work_start_date,\
+                                     work_start_date=work_start_date,\
                                      work_end_date=work_end_date, work_region=work_region_dj_obj,\
                                      work_state=work_state_dj_obj)
             
@@ -410,11 +414,9 @@ class WorkContainer(object):
         
         for k,v in self.translate_dictionary.items():
             f_index = channel_string.lower().find(k.lower())
-    
             while f_index != -1:
                 channel_string = channel_string[:f_index] + v + channel_string[f_index+len(k):]
                 f_index = channel_string.lower().find(k.lower())
-                
         return channel_string #.encode(self.parse_options.options['output_encoding'])
         
     def lookup_outage_type(self, outages_set):
@@ -428,16 +430,18 @@ class WorkContainer(object):
 
         translated = []
         
-        for x in outages_set:
-            print x
+        #for x in outages_set:
+        #    print x
         #print self.OutageConditions
         
-        
         for x in outages_set:
-            outage_translated = filter(lambda _x: _x.outagecond_name == x, self.OutageConditions)[0]
-            if outage_translated:
-                translated.append(outage_translated.outagecond_translation)
-                
+            try:
+                outage_translated = filter(lambda _x: _x.outagecond_name == x, self.OutageConditions)[0]
+                if outage_translated:
+                    translated.append(outage_translated.outagecond_translation)
+            except:
+                raise UnknownWorkConditionError(x)
+                    
         if len(translated) == 1:
             if "2-8 KRP" not in translated and "4-6 KRP" not in translated:
                 return filter(lambda _x: _x.outagetype_name == "service_interruption", self.OutageTypes)[0]
@@ -462,7 +466,7 @@ class WorkContainer(object):
         try:
             client_obj = filter(lambda _x: _x.client_name == client_name, self.Clients)[0]
         except IndexError as e:
-            raise RecordParseError("not found in contact base", client_name)
+            raise UnknownClient(client_name)
 #        print '<- end client search', datetime.now()
         
         
@@ -532,11 +536,15 @@ class WorkContainer(object):
                 
 #TODO - REPLACE UGLY CODE
                 loc_id = mw_channel.split('[')[1].strip()[:-1]
-                chan = mw_channel.replace(loc_id, ' ')
-                chan = ' '.join([x for x in chan.split(' ') if len(x)>1]) + ' (' + loc_id + ')'
-                
-                
-                if client_obj.client_language == self.EngLanguage:              
+                chan = mw_channel.replace('['+loc_id+']', ' ')
+#BUG with disappeared - symbol in channel name.
+                #chan = ' '.join([x for x in chan.split(' ') if len(x)>1]) + ' (' + loc_id + ')'
+                chan += ' (' + loc_id + ')'
+                while chan.find('  ')!=-1:
+                    chan=chan.replace('  ', ' ')
+                while chan.find(' ;')!=-1:
+                    chan=chan.replace(' ;', ';')
+                if client_obj.client_language == self.EngLanguage:
                     outage_object = LocalOutage(outage_type = outage_type_dj_obj, outage_circuit=self.translate_client_channel_name(chan))
                 else:
                     outage_object = LocalOutage(outage_type = outage_type_dj_obj, outage_circuit=chan)
@@ -585,6 +593,7 @@ class WorkContainer(object):
         if len(time_list)==6:
             '''
             No end_date provided, assuming it is equal start_date
+            some works have strange time format: Tue 09.12.2014 from 23:00 to 24:00
             '''
             format1time = Format1TimeString(*time_list)
             
@@ -592,10 +601,18 @@ class WorkContainer(object):
             start_time = Time(*[int(_x) for _x in format1time.start_time.split(':')])
             end_time = Time(*[int(_x) for _x in format1time.end_time.split(':')])
             
+            #Workaround bug with 24:00 same date
+            if end_time.hour == 24 and end_time.minute == 0:
+                end_date = timezone.datetime(start_date.year, start_date.month, start_date.day, start_time.hour, start_time.minute, 0, 0) + timezone.timedelta(days=1)-timezone.timedelta(hours=start_time.hour-1, minutes=60)
+                
+                return [local_tz.localize(timezone.datetime(start_date.year, start_date.month, start_date.day, start_time.hour, start_time.minute, 0, 0)).astimezone(timezone.utc),\
+                local_tz.localize(end_date).astimezone(timezone.utc)]
+
+                
             #===================================================================
             # print start_date
             # print start_time
-            # print end_time
+            #print end_time
             # 
             # 
             # print local_tz.localize(timezone.datetime(start_date.year, start_date.month, start_date.day, start_time.hour, start_time.minute, 0, 0)).astimezone(timezone.utc)
@@ -660,32 +677,53 @@ class WorkContainer(object):
         #MWs = filter(lambda _x: _x.mw_notification == local_notification_obj, self.MaintenanceWindows)
         
         MWs = local_notification_obj.mws
+        MWs = sorted(MWs, key=lambda x: x.mw_start_date)
         #print "found MWs for notification", len(MWs)
         #print "<- end search MWs for notification"
         
         for MW in MWs:
-            outages_text += MW.mw_start_date.astimezone(utc_tz).strftime('%d.%m.%Y %H:%M') + "-"+ MW.mw_end_date.astimezone(utc_tz).strftime('%d.%m.%Y %H:%M') + ' (UTC)\n'
+            outages_text += "\n--" + MW.mw_start_date.astimezone(utc_tz).strftime('%d.%m.%Y %H:%M') + "-"+ MW.mw_end_date.astimezone(utc_tz).strftime('%d.%m.%Y %H:%M') + ' (UTC):'
             
             
             outages_objects = MW.outages#Outage.objects.filter(outage_mw=MW)
             
-            #print "-> start search outages for MW"
-            for outage in outages_objects:
+#TODO - outages must be grouped by type, after outage type - chanel list
+#DONE
+#NEW CODE
+            outage_types_set = set([_x.outage_type for _x in outages_objects])
+            for outage_type in outage_types_set:
                 
                 outage_template = filter(lambda _x: (_x.outagetemplate_language == local_notification_obj.client.client_language and \
-                                         _x.outagetemplate_outagetype== outage.outage_type), self.OutageTemplates)[0]
+                                         _x.outagetemplate_outagetype== outage_type), self.OutageTemplates)[0]
+                outages_text += "\n"+ outage_template.outagetemplate_text
+                same_type_outages = filter(lambda _x: _x.outage_type==outage_type, outages_objects)
+                outages_text += "\n---\n"
                 
-                #outage_template = OutageTemplate.objects.get(outagetemplate_language = local_notification_obj.notification_client.client_language,\
-                #                                             outagetemplate_outagetype = outage.outage_type)
-                outage_template_text = outage_template.outagetemplate_text
-                outages_text += outage_template_text.replace("%circuit_name%",outage.outage_circuit) + "\n\n\n"
+                for same_type_outage in same_type_outages:
+                    outages_text += same_type_outage.outage_circuit + "\n"
+                outages_text += "---\n"
+                
+                #outage_type_template_text = 
+
+
+
+#OLD CODE
+#            for outage in outages_objects:
+#                
+#                outage_template = filter(lambda _x: (_x.outagetemplate_language == local_notification_obj.client.client_language and \
+#                                         _x.outagetemplate_outagetype== outage.outage_type), self.OutageTemplates)[0]
+#                #outage_template = OutageTemplate.objects.get(outagetemplate_language = local_notification_obj.notification_client.client_language,\
+#                #                                             outagetemplate_outagetype = outage.outage_type)
+#                
+#                outage_template_text = outage_template.outagetemplate_text
+#                outages_text += outage_template_text.replace("%circuit_name%",outage.outage_circuit) + "\n\n\n"
                 
             #print "<- end search outages for MW"
         
         #print '-> start form body'
         notification_body = notification_template.notificationtemplate_text
         notification_body = notification_body.replace("%work_number%", local_work_obj.work_number)
-        notification_body = notification_body.replace("%client_name%", local_notification_obj.client.client_name)
+        notification_body = notification_body.replace("%client_name%", local_notification_obj.client.client_display_name)
         
         
         

@@ -11,7 +11,7 @@ UnknownWorkConditionError, UnknownClient, BlankWorkNumber
 
 from processor.tmp_csv_proc import WorkContainer
 #from rnr.models import WorkType
-from django.shortcuts import HttpResponse, Http404
+from django.shortcuts import HttpResponse
 from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -29,8 +29,10 @@ import datetime
 # Work views
 #===============================================================================
 
+#tested in rnr.tests.works.views.test_get_works_json
 @request_type('GET', True)
 @lang_aware({'en':'English', 'ru':'Russian'})
+@http400onError
 def get_works_json(request, lang):
     '''
     /rnr/get_works_json
@@ -188,7 +190,7 @@ def get_work_numbers_json(request):
     return response
 
 
-#tested in rnr.tests.works.views.get_works_total_count
+#tested in rnr.tests.works.views.test_get_works_total_count
 @request_type('GET', True)
 def get_works_total_count(request):
     '''
@@ -198,7 +200,7 @@ def get_works_total_count(request):
     response = HttpResponse(simplejson.dumps({"work_count":work_count}), content_type='application/json')
     return response
 
-
+#tested in rnr.tests.works.views.test_get_worktypes_all_json
 @request_type('GET', True)
 @lang_aware({'en':'English','ru':'Russian'})
 def get_worktypes_all_json(request, lang):
@@ -208,6 +210,8 @@ def get_worktypes_all_json(request, lang):
     response = HttpResponse(simplejson.dumps(list(work_types)), content_type='application/json')
     return response
 
+
+#tested in rnr.tests.works.views.test_add_new_work
 @csrf_exempt
 @request_type('POST', True)
 @lang_aware({'en':'English','ru':'Russian'})
@@ -256,25 +260,21 @@ def add_new_work( request, lang):
     response = HttpResponse(e.error_in_json, content_type='application/json')
     return response
 
-#NOT USED
-#@request_type('POST', True)
-#def cancel_work(request):
-#    work_slug = request.POST["work_slug"]
-#    work_django_obj = Work.objects.get(slug=work_slug)
-#    return HttpResponse("Hi there!")
 
-#TODO add try/except
+#tested in rnr.tests.works.views.test_delete_work
+@csrf_exempt
 @request_type('POST', True)
+@http400onError
 def delete_work(request):
-    if request.method == 'POST':
-        work_slug = request.POST["work_slug"]
-        work_django_obj = Work.objects.get(slug=work_slug)
-        work_django_obj.delete()
-        return HttpResponse(simplejson.dumps({"success":True}))
+    work_slug = request.POST["work_slug"]
+    work_django_obj = Work.objects.get(slug=work_slug)
+    work_django_obj.delete()
+    return HttpResponse(simplejson.dumps({"success":True}))
 
 
 #@transaction.commit_manually
 
+#parsing tested in in rnr.tests.parsers.csv_parser
 @csrf_exempt
 @request_type('POST', True)
 @lang_aware({'en':'English','ru':'Russian'})
